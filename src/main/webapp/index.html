@@ -61,6 +61,9 @@
 		<div class="input">
 			<form>
 				<input type="text" name="url">
+				<input type="numeric" value="100" name="max-imgs">
+				<input type="numeric" value="20" name="max-pages">
+				<input type="numeric" value="5" name="max-depth">
 			</form>
 			<button type="button">Submit!</button>
 		</div>
@@ -73,6 +76,9 @@
 	<script>
 		var resultList = document.querySelector('ul.results');
 		var urlInput = document.querySelector('input[name=url]')
+		var maxImgsInput = document.querySelector('input[name=max-imgs]')
+		var maxPagesInput = document.querySelector('input[name=max-pages]')
+		var maxDepthInput = document.querySelector('input[name=max-depth]')
 
 		apiCallBack = function(xhr, callback) {
 			if (xhr.readyState == XMLHttpRequest.DONE) {
@@ -109,7 +115,13 @@
 
 		document.querySelector('button').addEventListener("click", function(event) {
 			event.preventDefault();
-			makeApiCall('/main?url=' + urlInput.value, 'POST', null, updateList);
+			const postBody = {
+				url: urlInput.value,
+				maxImgs: maxImgsInput.value,
+				maxPages: maxPagesInput.value,
+				maxDepth: maxDepthInput.value,
+			}
+			makeApiCall('/main', 'POST', postBody, updateList);
 		});
 	</script>
 </body>

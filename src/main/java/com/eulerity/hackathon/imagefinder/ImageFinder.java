@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -16,6 +17,7 @@ import com.eulerity.hackathon.Scraper.Scraper;
 import com.eulerity.hackathon.ScraperManager.ScraperManager;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonObject;
 
 @WebServlet(name = "ImageFinder", urlPatterns = { "/main" })
 public class ImageFinder extends HttpServlet {
@@ -31,14 +33,31 @@ public class ImageFinder extends HttpServlet {
 			"https://images.pexels.com/photos/1108099/pexels-photo-1108099.jpeg?auto=compress&format=tiny"
 	};
 
+	/*
+	 * const postBody = {
+	 * url: urlInput.value,
+	 * maxImgs: maxImgsInput.value,
+	 * maxPages: maxPagesInput.value,
+	 * maxDepth: maxDepthInput.value,
+	 * }
+	 */
 	@Override
 	protected final void doPost(HttpServletRequest aReq, HttpServletResponse aRes)
 			throws ServletException, IOException {
-		aRes.setContentType("text/json");
 		String myPath = aReq.getServletPath();
-		String myUrl = aReq.getParameter("url");
-		System.out.println(String.format("Got request of: %s with query param:%s", myPath, myUrl));
-		Set<String> myResults = new ScraperManager(myUrl, 20, 9000, 100).crawlAndScrape();
+		String myBody = aReq.getReader().lines().collect(Collectors.joining(""));
+		System.out.println(String.format("Got request to: %s with body: %s", myPath, myBody));
+
+		JsonObject myBodyJson = GSON.fromJson(myBody, JsonObject.class);
+		System.out.println(myBodyJson);
+		String myUrl = myBodyJson.get("url").getAsString();
+		int myMaxImgs = myBodyJson.get("maxImgs").getAsInt();
+		int myMaxPages = myBodyJson.get("maxPages").getAsInt();
+		int myMaxDepth = myBodyJson.get("maxDepth").getAsInt();
+
+		Set<String> myResults = new ScraperManager(myUrl, myMaxDepth, myMaxImgs, myMaxPages).crawlAndScrape();
+
+		aRes.setContentType("text/json");
 		aRes.getWriter().print(GSON.toJson(new ArrayList<>(myResults)));
 	}
 }
