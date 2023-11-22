@@ -4,6 +4,11 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.List;
+import java.util.Map;
+import java.util.Queue;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.jsoup.Jsoup;
@@ -21,47 +26,54 @@ public class Scraper {
         }
     }
 
-    public ScrapeResults scrape() {
+    public static void scrape(String aUrl, Function<String, Boolean> aImgSrcReport,
+            Function<String, Boolean> aNeighborUrlReport) {
         try {
-            Document myDocument = Jsoup.connect(theUrl.toString()).get();
+            URL myUrl = new URL(aUrl);
+            String myDomain = myUrl.getHost();
+            Document myDocument = Jsoup.connect(aUrl).get();
 
             Elements myAnchorElements = myDocument.getElementsByTag("a");
             List<String> myAnchorHrefs = myAnchorElements.stream()
                     .map((myElement) -> myElement.attr("href"))
                     .filter(myHref -> myHref != null && myHref.length() > 0)
-                    .map(this::getFullUrl)
+                    .map(myHref -> getFullUrl(myUrl, myHref))
+                    .filter(myHref -> myHref.contains(myDomain))
                     .collect(Collectors.toList());
-            System.out.println(myAnchorHrefs.stream().collect(Collectors.joining(",")));
+            // System.out.println(myAnchorHrefs.stream().collect(Collectors.joining(",")));
 
             Elements myImgElements = myDocument.getElementsByTag("img");
-            System.out.println(myImgElements);
             List<String> myImgSrcs = myImgElements.stream()
                     .map((myElement) -> myElement.attr("src"))
                     .filter(mySrc -> mySrc != null && mySrc.length() > 0)
-                    .map(this::getFullUrl)
+                    .map(mySrc -> getFullUrl(myUrl, mySrc))
                     .collect(Collectors.toList());
-            System.out.println(myImgSrcs.stream().collect(Collectors.joining(",")));
+            // System.out.println(myImgSrcs.stream().collect(Collectors.joining(",")));
 
-            return new ScrapeResults(theUrl.toString(), myAnchorHrefs, myImgSrcs);
+            System.out.printf("scraped %s, found %d img src and %d neighbor urls\n", myUrl.toString(), myImgSrcs.size(),
+                    myAnchorHrefs.size());
+
+            myImgSrcs.forEach(aImgSrcReport::apply);
+            myAnchorHrefs.forEach(aNeighborUrlReport::apply);
         } catch (IOException myException) {
-            System.out.println(myException.getStackTrace());
-            return new ScrapeResults(theUrl.toString());
+            System.out.println(myException);
+            return;
         } catch (IllegalArgumentException myException) {
-            System.out.println(myException.getStackTrace());
-            return new ScrapeResults(theUrl.toString());
+            System.out.println(myException);
+            return;
         }
     }
 
-    private String getFullUrl(String aSrc) {
+    private static String getFullUrl(URL aUrl, String aSrc) {
         if (aSrc.startsWith("https") || aSrc.startsWith("http")) {
             return aSrc;
         }
         if (aSrc.startsWith("//")) {
-            return theUrl.getProtocol() + ':' + aSrc;
+            return aUrl.getProtocol() + ':' + aSrc;
         }
         if (aSrc.startsWith("/")) {
-            return theUrl.getProtocol() + "://" + theUrl.getHost() + aSrc;
+            return aUrl.getProtocol() + "://" + aUrl.getHost() + aSrc;
         }
-        return theUrl.getProtocol() + "://" + aSrc;
+        return aUrl.getProtocol() + "://" + aUrl.getHost() + "/" + aSrc;
     }
 }

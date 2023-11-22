@@ -1,6 +1,9 @@
 package com.eulerity.hackathon.ImageFinder;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -10,6 +13,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import com.eulerity.hackathon.Scraper.ScrapeResults;
 import com.eulerity.hackathon.Scraper.Scraper;
+import com.eulerity.hackathon.ScraperManager.ScraperManager;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
@@ -34,7 +38,7 @@ public class ImageFinder extends HttpServlet {
 		String myPath = aReq.getServletPath();
 		String myUrl = aReq.getParameter("url");
 		System.out.println(String.format("Got request of: %s with query param:%s", myPath, myUrl));
-		ScrapeResults myResults = new Scraper(myUrl).scrape();
-		aRes.getWriter().print(GSON.toJson(myResults.getImageUrls()));
+		Set<String> myResults = new ScraperManager(myUrl, 20, 9000, 100).crawlAndScrape();
+		aRes.getWriter().print(GSON.toJson(new ArrayList<>(myResults)));
 	}
 }
