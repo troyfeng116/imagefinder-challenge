@@ -1,4 +1,4 @@
-package com.eulerity.hackathon.imagefinder;
+package com.eulerity.hackathon.ImageFinder;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -15,7 +15,6 @@ import javax.servlet.http.HttpSession;
 import org.junit.Before;
 import org.mockito.Mockito;
 
-import com.eulerity.hackathon.imagefinder.ImageFinder;
 import com.google.gson.Gson;
 
 public class ImageFinderTest {
