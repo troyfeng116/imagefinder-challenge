@@ -2,7 +2,6 @@ package com.eulerity.hackathon.ImageFinder;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.servlet.ServletException;
