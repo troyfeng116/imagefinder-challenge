@@ -22,14 +22,16 @@ public class CrawlerConfig {
     }
 
     /**
-     * Constructs `CrawlerConfig` object from req JSON, with default values as set
-     * by `CrawlerConfig.Builder` if absent from req JSON. `url` field required.
+     * Constructs `CrawlerConfig` object from req JSON, with default values if
+     * absent from req JSON. `url` field required.
      *
      * @param aReqJson JSON from incoming req.
      * @return `CrawlerConfig` object, with default values for missing fields.
      * 
      * @throws IllegalArgumentException If `url` field does not exist in req JSON.
      * @throws MalformedURLException    If `url` field is malformed.
+     * 
+     * @see `com.eulerity.hackathon.Constants` for field defaults.
      */
     public static CrawlerConfig of(JsonObject aReqJson) throws IllegalArgumentException, MalformedURLException {
         JsonElement myUrlElement = aReqJson.get(Constants.URL_FIELD);
@@ -41,8 +43,7 @@ public class CrawlerConfig {
         String myUrlString = myUrlElement.getAsString();
         URL myUrl = new URL(myUrlString);
 
-        return new Builder()
-                .withStartUrl(myUrl)
+        return new Builder(myUrl)
                 .withMaxDepth(readIntField(aReqJson, Constants.MAX_DEPTH_FIELD, Constants.DEFAULT_MAX_DEPTH))
                 .withMaxUrls(readIntField(aReqJson, Constants.MAX_URLS_FIELD, Constants.DEFAULT_MAX_URLS))
                 .withMaxImgSrcs(readIntField(aReqJson, Constants.MAX_IMG_SRCS_FIELD, Constants.DEFAULT_MAX_IMG_SRCS))
@@ -76,25 +77,14 @@ public class CrawlerConfig {
         return myOptionalJson.isPresent() ? myOptionalJson.get().getAsInt() : aDefaultValue;
     }
 
-    /**
-     * @see `com.eulerity.hackathon.Constants` for defaults.
-     */
     public static class Builder {
-        private URL theStartUrl;
+        private final URL theStartUrl;
         private Integer theMaxDepth;
         private Integer theMaxUrls;
         private Integer theMaxImgSrcs;
 
-        public Builder() {
-            theStartUrl = null;
-            theMaxDepth = null;
-            theMaxUrls = null;
-            theMaxImgSrcs = null;
-        }
-
-        public Builder withStartUrl(URL aStartUrl) {
+        public Builder(URL aStartUrl) {
             theStartUrl = aStartUrl;
-            return this;
         }
 
         public Builder withMaxDepth(int aMaxDepth) {
