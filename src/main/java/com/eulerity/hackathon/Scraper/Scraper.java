@@ -53,8 +53,9 @@ public class Scraper {
             System.out.printf("scraped %s, found %d img src and %d neighbor urls\n", myUrl.toString(), myImgSrcs.size(),
                     myAnchorHrefs.size());
 
-            myImgSrcs.forEach(aImgSrcReport::apply);
-            myAnchorHrefs.forEach(aNeighborUrlReport::apply);
+            // `allMatch`: lazy streams stop iteration once `apply` fails
+            myImgSrcs.stream().allMatch(aImgSrcReport::apply);
+            myAnchorHrefs.stream().allMatch(aNeighborUrlReport::apply);
         } catch (IOException myException) {
             System.out.println(myException);
             return;

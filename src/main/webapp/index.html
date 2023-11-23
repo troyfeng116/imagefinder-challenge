@@ -60,25 +60,42 @@
 	<div class="content">
 		<div class="input">
 			<form>
-				<input type="text" name="url">
-				<input type="numeric" value="100" name="max-imgs">
-				<input type="numeric" value="20" name="max-pages">
-				<input type="numeric" value="5" name="max-depth">
+				<div>
+					<label for="url">Starting URL (http/https)</label>
+					<input type="text" id="url">
+				</div>
+
+				<div>
+					<label for="max-imgs">Maximum images to retrieve</label>
+					<input type="numeric" value="100" id="max-imgs">
+				</div>
+
+				<div>
+					<label for="max-pages">Maximum distinct pages to crawl</label>
+					<input type="numeric" value="20" id="max-pages">
+				</div>
+
+				<div>
+					<label for="max-depth">Maximum crawl depth</label>
+					<input type="numeric" value="5" id="max-depth">
+				</div>
 			</form>
 			<button type="button">Submit!</button>
 		</div>
 		<div class="output">
+			<p class="results-size"></p>
 			<ul class="results">
 
 			</ul>
 		</div>
 	</div>
 	<script>
+		var resultsSizeText = document.querySelector('p.results-size');
 		var resultList = document.querySelector('ul.results');
-		var urlInput = document.querySelector('input[name=url]')
-		var maxImgsInput = document.querySelector('input[name=max-imgs]')
-		var maxPagesInput = document.querySelector('input[name=max-pages]')
-		var maxDepthInput = document.querySelector('input[name=max-depth]')
+		var urlInput = document.querySelector('input[id=url]');
+		var maxImgsInput = document.querySelector('input[id=max-imgs]');
+		var maxUrlsInput = document.querySelector('input[id=max-pages]');
+		var maxDepthInput = document.querySelector('input[id=max-depth]');
 
 		apiCallBack = function(xhr, callback) {
 			if (xhr.readyState == XMLHttpRequest.DONE) {
@@ -97,6 +114,7 @@
 		}
 
 		updateList = function(response) {
+			resultsSizeText.innerHTML = `${response.length} results`;
 			resultList.innerHTML = '';
 			for (var i = 0; i < response.length; i++) {
 				var img = document.createElement("img");
@@ -118,9 +136,9 @@
 			const postBody = {
 				url: urlInput.value,
 				maxImgs: maxImgsInput.value,
-				maxPages: maxPagesInput.value,
+				maxUrls: maxUrlsInput.value,
 				maxDepth: maxDepthInput.value,
-			}
+			};
 			makeApiCall('/main', 'POST', postBody, updateList);
 		});
 	</script>

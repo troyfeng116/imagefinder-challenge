@@ -1,6 +1,7 @@
 package com.eulerity.hackathon.ScraperManager;
 
 import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Map;
@@ -17,21 +18,16 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import com.eulerity.hackathon.Crawler.CrawlerConfig;
 import com.eulerity.hackathon.Scraper.ScrapeResults;
 import com.eulerity.hackathon.Scraper.Scraper;
 
 // contract: one manager per request (one parent thread, with separate object, instead of static fields)
 public class ScraperManager {
-    private final String theStartUrl;
-    private final int theMaxDepth;
-    private final int theMaxSrcs;
-    private final int theMaxUrls;
+    private final CrawlerConfig theCrawlerConfig;
 
-    public ScraperManager(String aStartUrl, int aMaxDepth, int aMaxSrcs, int aMaxUrls) {
-        theStartUrl = aStartUrl;
-        theMaxDepth = aMaxDepth;
-        theMaxSrcs = aMaxSrcs;
-        theMaxUrls = aMaxUrls;
+    public ScraperManager(CrawlerConfig aCrawlerConfig) {
+        theCrawlerConfig = aCrawlerConfig;
     }
 
     public Set<String> crawlAndScrape() {
@@ -39,11 +35,13 @@ public class ScraperManager {
         Map<String, Boolean> mySeenUrls = new ConcurrentHashMap<>();
         Queue<String> myNextUrlsToScrape = new ConcurrentLinkedQueue<>();
 
-        myNextUrlsToScrape.offer(theStartUrl);
-        mySeenUrls.put(theStartUrl, true);
+        URL myStartUrl = theCrawlerConfig.getStartUrl();
+        String myStartUrlString = myStartUrl.toString();
+        myNextUrlsToScrape.offer(myStartUrlString);
+        mySeenUrls.put(myStartUrlString, true);
 
-        for (int myLevel = 0; myLevel < theMaxDepth && !myNextUrlsToScrape.isEmpty(); myLevel++) {
-            System.out.printf("scraping depth=%d, %d new urls, %d seen urls\n", theMaxDepth,
+        for (int myLevel = 0; myLevel < theCrawlerConfig.getMaxDepth() && !myNextUrlsToScrape.isEmpty(); myLevel++) {
+            System.out.printf("scraping depth=%d, %d new urls, %d seen urls\n", theCrawlerConfig.getMaxDepth(),
                     myNextUrlsToScrape.size(), mySeenUrls.size());
 
             // drain all URLs from synch queue
@@ -52,8 +50,9 @@ public class ScraperManager {
                 myLevelUrls.offer(myNextUrlsToScrape.poll());
             }
             int myLevelSz = myLevelUrls.size();
+            int myRemainingUrls = theCrawlerConfig.getMaxUrls() - (mySeenUrls.size() - myLevelSz);
 
-            CountDownLatch myLatch = new CountDownLatch(myLevelSz);
+            CountDownLatch myLatch = new CountDownLatch(Math.min(myRemainingUrls, myLevelSz));
             ExecutorService myExecutorService = new ThreadPoolExecutor(8, 16, 5, TimeUnit.SECONDS,
                     new LinkedBlockingQueue<>());
             while (!myLevelUrls.isEmpty()) {
@@ -63,7 +62,8 @@ public class ScraperManager {
                             (aImgSrc) -> {
                                 // synchronization: computeIfAbsent atomicity
                                 Boolean myComputeResult = myDiscoveredImageSrcs.computeIfAbsent(aImgSrc, (__) -> {
-                                    return myDiscoveredImageSrcs.size() < theMaxSrcs ? true : null;
+                                    return myDiscoveredImageSrcs.size() < theCrawlerConfig.getMaxImgSrcs() ? true
+                                            : null;
                                 });
                                 return myComputeResult != null;
                             },
@@ -71,7 +71,7 @@ public class ScraperManager {
                                 // synchronization: computeIfAbsent atomic, atomic get-set unlocks right to add
                                 // to BFS queue
                                 Boolean myComputeResult = mySeenUrls.computeIfAbsent(aNeighborUrl, (__) -> {
-                                    if (mySeenUrls.size() < theMaxUrls) {
+                                    if (mySeenUrls.size() < theCrawlerConfig.getMaxUrls()) {
                                         myNextUrlsToScrape.offer(aNeighborUrl);
                                         return true;
                                     }
@@ -86,6 +86,7 @@ public class ScraperManager {
             System.out.printf("awaiting latch for level %d with %d urls executing\n", myLevel, myLevelSz);
             try {
                 myLatch.await(5, TimeUnit.SECONDS);
+                myExecutorService.shutdownNow();
             } catch (InterruptedException myException) {
                 System.err.println(myException);
                 return new HashSet<>(mySeenUrls.keySet());

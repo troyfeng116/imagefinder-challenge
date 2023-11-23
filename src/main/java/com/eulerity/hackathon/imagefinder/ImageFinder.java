@@ -12,6 +12,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.eulerity.hackathon.Crawler.CrawlerConfig;
 import com.eulerity.hackathon.Scraper.ScrapeResults;
 import com.eulerity.hackathon.Scraper.Scraper;
 import com.eulerity.hackathon.ScraperManager.ScraperManager;
@@ -45,19 +46,21 @@ public class ImageFinder extends HttpServlet {
 	protected final void doPost(HttpServletRequest aReq, HttpServletResponse aRes)
 			throws ServletException, IOException {
 		String myPath = aReq.getServletPath();
-		String myBody = aReq.getReader().lines().collect(Collectors.joining(""));
+		String myBody = extractPostBody(aReq);
 		System.out.println(String.format("Got request to: %s with body: %s", myPath, myBody));
 
+		// TODO: handle invalid json
 		JsonObject myBodyJson = GSON.fromJson(myBody, JsonObject.class);
-		System.out.println(myBodyJson);
-		String myUrl = myBodyJson.get("url").getAsString();
-		int myMaxImgs = myBodyJson.get("maxImgs").getAsInt();
-		int myMaxPages = myBodyJson.get("maxPages").getAsInt();
-		int myMaxDepth = myBodyJson.get("maxDepth").getAsInt();
+		CrawlerConfig myCrawlerConfig = CrawlerConfig.of(myBodyJson);
+		System.out.println(myCrawlerConfig.toString());
 
-		Set<String> myResults = new ScraperManager(myUrl, myMaxDepth, myMaxImgs, myMaxPages).crawlAndScrape();
+		Set<String> myResults = new ScraperManager(myCrawlerConfig).crawlAndScrape();
 
 		aRes.setContentType("text/json");
 		aRes.getWriter().print(GSON.toJson(new ArrayList<>(myResults)));
+	}
+
+	private String extractPostBody(HttpServletRequest aReq) throws IOException {
+		return aReq.getReader().lines().collect(Collectors.joining(""));
 	}
 }
