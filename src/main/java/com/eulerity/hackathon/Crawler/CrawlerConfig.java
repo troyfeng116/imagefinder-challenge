@@ -21,23 +21,25 @@ public class CrawlerConfig {
         theMaxImgSrcs = aBuilder.theMaxImgSrcs;
     }
 
-    // TODO: throw exceptions
-    public static CrawlerConfig of(JsonObject aReqJson) {
+    /**
+     * Constructs `CrawlerConfig` object from req JSON, with default values as set
+     * by `CrawlerConfig.Builder` if absent from req JSON. `url` field required.
+     *
+     * @param aReqJson JSON from incoming req.
+     * @return `CrawlerConfig` object, with default values for missing fields.
+     * 
+     * @throws IllegalArgumentException If `url` field does not exist in req JSON.
+     * @throws MalformedURLException    If `url` field is malformed.
+     */
+    public static CrawlerConfig of(JsonObject aReqJson) throws IllegalArgumentException, MalformedURLException {
         JsonElement myUrlElement = aReqJson.get(Constants.URL_FIELD);
         if (myUrlElement == null) {
-            System.err.println(new IllegalArgumentException(
-                    String.format("[%s] req json must contain `%s` field", Constants.URL_FIELD, CrawlerConfig.class)));
-            return null;
+            throw new IllegalArgumentException(
+                    String.format("[%s] req json must contain `%s` field", Constants.URL_FIELD, CrawlerConfig.class));
         }
 
         String myUrlString = myUrlElement.getAsString();
-        URL myUrl;
-        try {
-            myUrl = new URL(myUrlString);
-        } catch (MalformedURLException myException) {
-            System.err.println(myException);
-            return null;
-        }
+        URL myUrl = new URL(myUrlString);
 
         return new Builder()
                 .withStartUrl(myUrl)
@@ -74,6 +76,9 @@ public class CrawlerConfig {
         return myOptionalJson.isPresent() ? myOptionalJson.get().getAsInt() : aDefaultValue;
     }
 
+    /**
+     * @see `com.eulerity.hackathon.Constants` for defaults.
+     */
     public static class Builder {
         private URL theStartUrl;
         private Integer theMaxDepth;
