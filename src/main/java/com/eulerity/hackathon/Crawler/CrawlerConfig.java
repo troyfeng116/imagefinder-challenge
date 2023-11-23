@@ -13,12 +13,16 @@ public class CrawlerConfig {
     private final int theMaxDepth;
     private final int theMaxUrls;
     private final int theMaxImgSrcs;
+    private final boolean theShouldIncludeSVGs;
+    private final boolean theShouldIncludePNGs;
 
     private CrawlerConfig(Builder aBuilder) {
         theStartUrl = aBuilder.theStartUrl;
         theMaxDepth = aBuilder.theMaxDepth;
         theMaxUrls = aBuilder.theMaxUrls;
         theMaxImgSrcs = aBuilder.theMaxImgSrcs;
+        theShouldIncludeSVGs = aBuilder.theShouldIncludeSVGs;
+        theShouldIncludePNGs = aBuilder.theShouldIncludePNGs;
     }
 
     /**
@@ -47,6 +51,10 @@ public class CrawlerConfig {
                 .withMaxDepth(readIntField(aReqJson, Constants.MAX_DEPTH_FIELD, Constants.DEFAULT_MAX_DEPTH))
                 .withMaxUrls(readIntField(aReqJson, Constants.MAX_URLS_FIELD, Constants.DEFAULT_MAX_URLS))
                 .withMaxImgSrcs(readIntField(aReqJson, Constants.MAX_IMG_SRCS_FIELD, Constants.DEFAULT_MAX_IMG_SRCS))
+                .withShouldIncludeSVGs(readBooleanField(aReqJson, Constants.SHOULD_INCLUDE_SVGS_FIELD,
+                        Constants.DEFAULT_SHOULD_INCLUDE_SVGS))
+                .withShouldIncludePNGs(readBooleanField(aReqJson, Constants.SHOULD_INCLUDE_PNGS_FIELD,
+                        Constants.DEFAULT_SHOULD_INCLUDE_PNGS))
                 .build();
     }
 
@@ -66,10 +74,20 @@ public class CrawlerConfig {
         return theMaxImgSrcs;
     }
 
+    public boolean getShouldIncludeSVGs() {
+        return theShouldIncludeSVGs;
+    }
+
+    public boolean getShouldIncludePNGs() {
+        return theShouldIncludePNGs;
+    }
+
     @Override
     public String toString() {
-        return String.format("CrawlerConfig{%s, maxDepth=%d, maxUrls=%d, maxImgSrcs=%d}\n", theStartUrl.toString(),
-                theMaxDepth, theMaxUrls, theMaxImgSrcs);
+        return String.format(
+                "CrawlerConfig{%s, maxDepth=%d, maxUrls=%d, maxImgSrcs=%d, shouldIncludeSVGs=%b, shouldIncludePNGs=%b}\n",
+                theStartUrl.toString(),
+                theMaxDepth, theMaxUrls, theMaxImgSrcs, theShouldIncludeSVGs, theShouldIncludePNGs);
     }
 
     private static int readIntField(JsonObject aReqJson, String aFieldName, int aDefaultValue) {
@@ -77,11 +95,18 @@ public class CrawlerConfig {
         return myOptionalJson.isPresent() ? myOptionalJson.get().getAsInt() : aDefaultValue;
     }
 
+    private static boolean readBooleanField(JsonObject aReqJson, String aFieldName, boolean aDefaultValue) {
+        Optional<JsonElement> myOptionalJson = Optional.ofNullable(aReqJson.get(aFieldName));
+        return myOptionalJson.isPresent() ? myOptionalJson.get().getAsBoolean() : aDefaultValue;
+    }
+
     public static class Builder {
         private final URL theStartUrl;
         private Integer theMaxDepth;
         private Integer theMaxUrls;
         private Integer theMaxImgSrcs;
+        private boolean theShouldIncludeSVGs;
+        private boolean theShouldIncludePNGs;
 
         public Builder(URL aStartUrl) {
             theStartUrl = aStartUrl;
@@ -99,6 +124,16 @@ public class CrawlerConfig {
 
         public Builder withMaxImgSrcs(int aMaxImgSrcs) {
             theMaxImgSrcs = aMaxImgSrcs;
+            return this;
+        }
+
+        public Builder withShouldIncludeSVGs(boolean aShouldIncludeSVGs) {
+            theShouldIncludeSVGs = aShouldIncludeSVGs;
+            return this;
+        }
+
+        public Builder withShouldIncludePNGs(boolean aShouldIncludePNGs) {
+            theShouldIncludePNGs = aShouldIncludePNGs;
             return this;
         }
 

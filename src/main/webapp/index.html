@@ -79,6 +79,16 @@
 					<label for="max-depth">Maximum crawl depth</label>
 					<input type="numeric" value="5" id="max-depth">
 				</div>
+
+				<div>
+					<label for="include-svgs">Include SVGs? (very often used for icons/logos)</label>
+					<input type="checkbox" id="include-svgs">
+				</div>
+
+				<div>
+					<label for="include-pngs">Include PNGs? (sometimes used for icons/logos)</label>
+					<input type="checkbox" id="include-pngs">
+				</div>
 			</form>
 			<button type="button">Submit!</button>
 		</div>
@@ -96,6 +106,8 @@
 		var maxImgsInput = document.querySelector('input[id=max-imgs]');
 		var maxUrlsInput = document.querySelector('input[id=max-pages]');
 		var maxDepthInput = document.querySelector('input[id=max-depth]');
+		var includeSvgsInput = document.querySelector('input[id=include-svgs]');
+		var includePngsInput = document.querySelector('input[id=include-pngs]');
 
 		apiCallBack = function(xhr, callback) {
 			if (xhr.readyState == XMLHttpRequest.DONE) {
@@ -138,6 +150,8 @@
 				maxImgs: maxImgsInput.value,
 				maxUrls: maxUrlsInput.value,
 				maxDepth: maxDepthInput.value,
+				shouldIncludeSvgs: includeSvgsInput.checked,
+				shouldIncludePngs: includePngsInput.checked,
 			};
 			makeApiCall('/main', 'POST', postBody, updateList);
 		});

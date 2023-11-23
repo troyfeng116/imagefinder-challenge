@@ -22,7 +22,10 @@ public class Scraper {
         }
     }
 
-    public static void scrape(String aUrl, Function<String, Boolean> aImgSrcReport,
+    public static void scrape(String aUrl,
+            boolean aShouldIncludeSVGs,
+            boolean aShouldIncludePNGs,
+            Function<String, Boolean> aImgSrcReport,
             Function<String, Boolean> aNeighborUrlReport) {
         try {
             URL myUrl = new URL(aUrl);
@@ -42,6 +45,8 @@ public class Scraper {
             List<String> myImgSrcs = myImgElements.stream()
                     .map((myElement) -> myElement.attr("src"))
                     .filter(mySrc -> mySrc != null && mySrc.length() > 0)
+                    .filter(mySrc -> aShouldIncludeSVGs ? true : !mySrc.contains(".svg"))
+                    .filter(mySrc -> aShouldIncludePNGs ? true : !mySrc.contains(".png"))
                     .map(mySrc -> getFullUrl(myUrl, mySrc))
                     .collect(Collectors.toList());
             // System.out.println(myImgSrcs.stream().collect(Collectors.joining(",")));
@@ -62,15 +67,15 @@ public class Scraper {
     }
 
     private static String getFullUrl(URL aUrl, String aSrc) {
-        if (aSrc.startsWith("https") || aSrc.startsWith("http")) {
+        String myLowerSrc = aSrc.toLowerCase();
+        if (myLowerSrc.startsWith("https") || myLowerSrc.startsWith("http")) {
             return aSrc;
         }
         if (aSrc.startsWith("//")) {
             return aUrl.getProtocol() + ':' + aSrc;
         }
-        if (aSrc.startsWith("/")) {
-            return aUrl.getProtocol() + "://" + aUrl.getHost() + aSrc;
-        }
-        return aUrl.getProtocol() + "://" + aUrl.getHost() + "/" + aSrc;
+
+        String myBaseDomain = aUrl.getProtocol() + "://" + aUrl.getHost();
+        return myBaseDomain + (aSrc.startsWith("/") ? "" : "/") + aSrc;
     }
 }

@@ -38,7 +38,7 @@ public class ParallelBFSCrawler implements Crawler {
         mySeenUrls.put(myStartUrlString, true);
 
         for (int myLevel = 0; myLevel < theCrawlerConfig.getMaxDepth() && !myNextUrlsToScrape.isEmpty(); myLevel++) {
-            System.out.printf("scraping depth=%d, %d new urls, %d seen urls\n", theCrawlerConfig.getMaxDepth(),
+            System.out.printf("scraping level=%d, %d new urls, %d seen urls\n", myLevel,
                     myNextUrlsToScrape.size(), mySeenUrls.size());
 
             // drain all URLs from synch queue
@@ -55,6 +55,8 @@ public class ParallelBFSCrawler implements Crawler {
                 String myUrlToScrape = myLevelUrls.poll();
                 myExecutorService.execute(() -> {
                     Scraper.scrape(myUrlToScrape,
+                            theCrawlerConfig.getShouldIncludeSVGs(),
+                            theCrawlerConfig.getShouldIncludePNGs(),
                             (aImgSrc) -> {
                                 // synchronization: computeIfAbsent atomicity
                                 Boolean myComputeResult = myDiscoveredImageSrcs.computeIfAbsent(aImgSrc, (__) -> {
