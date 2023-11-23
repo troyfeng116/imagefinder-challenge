@@ -1,8 +1,6 @@
 package com.eulerity.hackathon;
 
-public enum Constants {
-    INSTANCE;
-
+public class Constants {
     private Constants() {
     }
 
