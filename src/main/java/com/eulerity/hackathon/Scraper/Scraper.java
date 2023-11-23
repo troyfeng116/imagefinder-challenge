@@ -4,12 +4,13 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.List;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
+
+import com.eulerity.hackathon.Crawler.Notifiers.CrawlerNotifier;
 
 public class Scraper {
     private final URL theUrl;
@@ -25,8 +26,7 @@ public class Scraper {
     public static void scrape(String aUrl,
             boolean aShouldIncludeSVGs,
             boolean aShouldIncludePNGs,
-            Function<String, Boolean> aImgSrcReport,
-            Function<String, Boolean> aNeighborUrlReport) {
+            CrawlerNotifier aNotifier) {
         try {
             URL myUrl = new URL(aUrl);
             String myDomain = myUrl.getHost();
@@ -55,8 +55,8 @@ public class Scraper {
                     myAnchorHrefs.size());
 
             // `allMatch`: lazy streams stop iteration once `apply` fails
-            myImgSrcs.stream().allMatch(aImgSrcReport::apply);
-            myAnchorHrefs.stream().allMatch(aNeighborUrlReport::apply);
+            myImgSrcs.stream().allMatch(aNotifier::notifyImgSrc);
+            myAnchorHrefs.stream().allMatch(aNotifier::notifyHref);
         } catch (IOException myException) {
             System.out.println(myException);
             return;

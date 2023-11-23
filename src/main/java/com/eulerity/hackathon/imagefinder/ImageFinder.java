@@ -32,14 +32,6 @@ public class ImageFinder extends HttpServlet {
 			"https://images.pexels.com/photos/1108099/pexels-photo-1108099.jpeg?auto=compress&format=tiny"
 	};
 
-	/*
-	 * const postBody = {
-	 * url: urlInput.value,
-	 * maxImgs: maxImgsInput.value,
-	 * maxPages: maxPagesInput.value,
-	 * maxDepth: maxDepthInput.value,
-	 * }
-	 */
 	@Override
 	protected final void doPost(HttpServletRequest aReq, HttpServletResponse aRes)
 			throws ServletException, IOException {
