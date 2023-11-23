@@ -1,36 +1,33 @@
-package com.eulerity.hackathon.ScraperManager;
+package com.eulerity.hackathon.Crawler.Crawlers;
 
-import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.HashSet;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.Queue;
-import java.util.Set;
-import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
 
+import com.eulerity.hackathon.Crawler.Crawler;
 import com.eulerity.hackathon.Crawler.CrawlerConfig;
-import com.eulerity.hackathon.Scraper.ScrapeResults;
+import com.eulerity.hackathon.Crawler.CrawlerResults;
 import com.eulerity.hackathon.Scraper.Scraper;
 
-// contract: one manager per request (one parent thread, with separate object, instead of static fields)
-public class ScraperManager {
+public class ParallelBFSCrawler implements Crawler {
     private final CrawlerConfig theCrawlerConfig;
 
-    public ScraperManager(CrawlerConfig aCrawlerConfig) {
+    public ParallelBFSCrawler(CrawlerConfig aCrawlerConfig) {
         theCrawlerConfig = aCrawlerConfig;
     }
 
-    public Set<String> crawlAndScrape() {
+    @Override
+    public CrawlerResults crawlAndScrape() {
+        long myStartTimestampMs = System.currentTimeMillis();
         Map<String, Boolean> myDiscoveredImageSrcs = new ConcurrentHashMap<>();
         Map<String, Boolean> mySeenUrls = new ConcurrentHashMap<>();
         Queue<String> myNextUrlsToScrape = new ConcurrentLinkedQueue<>();
@@ -50,9 +47,8 @@ public class ScraperManager {
                 myLevelUrls.offer(myNextUrlsToScrape.poll());
             }
             int myLevelSz = myLevelUrls.size();
-            int myRemainingUrls = theCrawlerConfig.getMaxUrls() - (mySeenUrls.size() - myLevelSz);
 
-            CountDownLatch myLatch = new CountDownLatch(Math.min(myRemainingUrls, myLevelSz));
+            CountDownLatch myLatch = new CountDownLatch(myLevelSz);
             ExecutorService myExecutorService = new ThreadPoolExecutor(8, 16, 5, TimeUnit.SECONDS,
                     new LinkedBlockingQueue<>());
             while (!myLevelUrls.isEmpty()) {
@@ -89,13 +85,17 @@ public class ScraperManager {
                 myExecutorService.shutdownNow();
             } catch (InterruptedException myException) {
                 System.err.println(myException);
-                return new HashSet<>(mySeenUrls.keySet());
+                return new CrawlerResults.Builder(theCrawlerConfig).build();
             }
         }
 
         System.out.printf("returning %d discovered img srcs after pushing %d urls onto BFS queue\n",
                 myDiscoveredImageSrcs.size(),
                 mySeenUrls.size());
-        return new HashSet<>(myDiscoveredImageSrcs.keySet());
+        return new CrawlerResults.Builder(theCrawlerConfig)
+                .withImgSrcs(new ArrayList<>(myDiscoveredImageSrcs.keySet()))
+                .withCrawledUrls(new ArrayList<>(mySeenUrls.keySet()))
+                .withCrawlTimeMs(System.currentTimeMillis() - myStartTimestampMs)
+                .build();
     }
 }
