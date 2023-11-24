@@ -8,7 +8,6 @@ public class CrawlerFactory {
     }
 
     public static Crawler create(CrawlerConfig aConfig) {
-        System.out.println(aConfig.getIsSingleThreaded());
         return aConfig.getIsSingleThreaded() ? new SerialBFSCrawler(aConfig) : new ParallelBFSCrawler(aConfig);
     }
 }
