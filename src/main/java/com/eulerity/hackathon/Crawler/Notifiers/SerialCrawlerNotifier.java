@@ -23,7 +23,7 @@ public class SerialCrawlerNotifier extends CrawlerNotifier {
 
     @Override
     public boolean notifyImgSrc(String aImgSrc) {
-        if (theDiscoveredImageSrcs.size() > getMaxImgSrcs()) {
+        if (theDiscoveredImageSrcs.size() >= getMaxImgSrcs()) {
             return false;
         }
 
@@ -33,7 +33,7 @@ public class SerialCrawlerNotifier extends CrawlerNotifier {
 
     @Override
     public boolean notifyHref(String aHref) {
-        if (theSeenUrls.size() > getMaxUrls() || theDiscoveredImageSrcs.size() > getMaxImgSrcs()) {
+        if (theSeenUrls.size() >= getMaxUrls() || theDiscoveredImageSrcs.size() >= getMaxImgSrcs()) {
             return false;
         }
 

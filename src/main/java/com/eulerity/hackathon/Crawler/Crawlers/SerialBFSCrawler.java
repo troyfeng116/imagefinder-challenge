@@ -34,7 +34,8 @@ public class SerialBFSCrawler implements Crawler {
             System.out.printf("scraping level=%d, %d new urls, %d seen urls\n", myLevel,
                     myLevelUrls.size(), myNotifier.getAllSeenUrls().size());
 
-            while (!myLevelUrls.isEmpty()) {
+            while (!myLevelUrls.isEmpty()
+                    && myNotifier.getDiscoveredImgSrcs().size() < theCrawlerConfig.getMaxImgSrcs()) {
                 String myUrlToScrape = myLevelUrls.poll();
                 Scraper.scrape(myUrlToScrape, theCrawlerConfig.getShouldIncludeSVGs(),
                         theCrawlerConfig.getShouldIncludePNGs(), myNotifier);
