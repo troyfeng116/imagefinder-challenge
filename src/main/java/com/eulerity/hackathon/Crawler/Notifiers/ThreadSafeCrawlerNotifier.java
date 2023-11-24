@@ -53,8 +53,9 @@ public class ThreadSafeCrawlerNotifier extends CrawlerNotifier {
 
     @Override
     public boolean notifyHref(String aHref) {
-        // synchronization: computeIfAbsent atomic: seenUrls size guaranteed to be
-        // minimal, acts as lock around theNextUrlsToScrape
+        // synchronization: computeIfAbsent atomic -> read to seenUrls guaranteed to be
+        // consistent with size, so queuedUrls.offer happens iff atomic compute + read
+        // size pass
         Boolean myComputeResult = theSeenUrls.computeIfAbsent(aHref, (__) -> {
             if (theSeenUrls.size() < getMaxUrls()) {
                 theQueuedUrls.offer(aHref);
