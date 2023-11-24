@@ -8,19 +8,17 @@ import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-public class ThreadSafeCrawlerNotifier implements CrawlerNotifier {
-    private final Map<String, Boolean> theQueuedUrls;
+public class ThreadSafeCrawlerNotifier extends CrawlerNotifier {
+    private final Map<String, Boolean> theSeenUrls;
     private final Map<String, Boolean> theDiscoveredImageSrcs;
-    private final Queue<String> theNextUrlsToScrape;
-    private final int theMaxImgSrcs;
-    private final int theMaxUrls;
+    private final Queue<String> theQueuedUrls;
 
     public ThreadSafeCrawlerNotifier(int aMaxImgSrcs, int aMaxUrls) {
-        theQueuedUrls = new ConcurrentHashMap<>();
+        super(aMaxImgSrcs, aMaxUrls);
+
+        theSeenUrls = new ConcurrentHashMap<>();
         theDiscoveredImageSrcs = new ConcurrentHashMap<>();
-        theNextUrlsToScrape = new ConcurrentLinkedQueue<>();
-        theMaxImgSrcs = aMaxImgSrcs;
-        theMaxUrls = aMaxUrls;
+        theQueuedUrls = new ConcurrentLinkedQueue<>();
     }
 
     @Override
@@ -29,15 +27,15 @@ public class ThreadSafeCrawlerNotifier implements CrawlerNotifier {
     }
 
     @Override
-    public List<String> getQueuedUrls() {
-        return new ArrayList<>(theQueuedUrls.keySet());
+    public List<String> getAllSeenUrls() {
+        return new ArrayList<>(theSeenUrls.keySet());
     }
 
     @Override
     public synchronized int drainNextUrlsQueue(Collection<String> aDrainTo) {
         int myDrainedCt = 0;
-        while (!theNextUrlsToScrape.isEmpty()) {
-            aDrainTo.add(theNextUrlsToScrape.poll());
+        while (!theQueuedUrls.isEmpty()) {
+            aDrainTo.add(theQueuedUrls.poll());
             myDrainedCt++;
         }
         return myDrainedCt;
@@ -47,7 +45,7 @@ public class ThreadSafeCrawlerNotifier implements CrawlerNotifier {
     public boolean notifyImgSrc(String aImgSrc) {
         // synchronization: computeIfAbsent atomicity
         Boolean myComputeResult = theDiscoveredImageSrcs.computeIfAbsent(aImgSrc, (__) -> {
-            return theDiscoveredImageSrcs.size() < theMaxImgSrcs ? true
+            return theDiscoveredImageSrcs.size() < getMaxImgSrcs() ? true
                     : null;
         });
         return myComputeResult != null;
@@ -57,9 +55,9 @@ public class ThreadSafeCrawlerNotifier implements CrawlerNotifier {
     public boolean notifyHref(String aHref) {
         // synchronization: computeIfAbsent atomic: seenUrls size guaranteed to be
         // minimal, acts as lock around theNextUrlsToScrape
-        Boolean myComputeResult = theQueuedUrls.computeIfAbsent(aHref, (__) -> {
-            if (theQueuedUrls.size() < theMaxUrls) {
-                theNextUrlsToScrape.offer(aHref);
+        Boolean myComputeResult = theSeenUrls.computeIfAbsent(aHref, (__) -> {
+            if (theSeenUrls.size() < getMaxUrls()) {
+                theQueuedUrls.offer(aHref);
                 return true;
             }
             return null;

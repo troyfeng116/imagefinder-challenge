@@ -20,4 +20,7 @@ public class Constants {
 
     public static final String SHOULD_INCLUDE_PNGS_FIELD = "shouldIncludePngs";
     public static final boolean DEFAULT_SHOULD_INCLUDE_PNGS = false;
+
+    public static final String IS_SINGLE_THREADED_FIELD = "isSingleThreaded";
+    public static final boolean DEFAULT_IS_SINGLE_THREADED = false;
 }

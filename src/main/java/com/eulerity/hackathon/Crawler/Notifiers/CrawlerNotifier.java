@@ -3,7 +3,23 @@ package com.eulerity.hackathon.Crawler.Notifiers;
 import java.util.Collection;
 import java.util.List;
 
-public interface CrawlerNotifier {
+public abstract class CrawlerNotifier {
+    private final int theMaxImgSrcs;
+    private final int theMaxUrls;
+
+    public CrawlerNotifier(int aMaxImgSrcs, int aMaxUrls) {
+        theMaxImgSrcs = aMaxImgSrcs;
+        theMaxUrls = aMaxUrls;
+    }
+
+    public final int getMaxImgSrcs() {
+        return theMaxImgSrcs;
+    }
+
+    public final int getMaxUrls() {
+        return theMaxUrls;
+    }
+
     /**
      * Scrapers invoke upon finding a new img src URL during crawl.
      *
@@ -15,7 +31,7 @@ public interface CrawlerNotifier {
      *         Used to help scrapers optimistically end iteration through new img
      *         srcs during scraping/notification.
      */
-    boolean notifyImgSrc(String aImgSrc);
+    public abstract boolean notifyImgSrc(String aImgSrc);
 
     /**
      * Scrapers invoke upon finding a new link href to a new page during crawl.
@@ -28,14 +44,14 @@ public interface CrawlerNotifier {
      *         Used to help scrapers optimistically end iteration through new hrefs
      *         during scraping/notification.
      */
-    boolean notifyHref(String aHref);
+    public abstract boolean notifyHref(String aHref);
 
     /**
      * Atomically drain all queued URLs for crawling from internal queued URLs.
      *
      * @return Number of atomically drained URLs to be crawled.
      */
-    int drainNextUrlsQueue(Collection<String> aDrainTo);
+    public abstract int drainNextUrlsQueue(Collection<String> aDrainTo);
 
     /**
      * Return all discovered img srcs during crawl.
@@ -44,7 +60,7 @@ public interface CrawlerNotifier {
      *
      * @return Current discovered img srcs state.
      */
-    List<String> getDiscoveredImgSrcs();
+    public abstract List<String> getDiscoveredImgSrcs();
 
     /**
      * Return all queued hrefs during crawl. Note this includes hrefs that are
@@ -52,7 +68,7 @@ public interface CrawlerNotifier {
      * Read operation may not be thread safe; recommended to allow all scraper
      * threads to join/finish notifying.
      * 
-     * @return All encountered and queued hrefs during crawl.
+     * @return All visited/encountered and queued hrefs during crawl.
      */
-    List<String> getQueuedUrls();
+    public abstract List<String> getAllSeenUrls();
 }

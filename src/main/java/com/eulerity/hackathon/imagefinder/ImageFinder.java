@@ -10,9 +10,10 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.eulerity.hackathon.Crawler.Crawler;
 import com.eulerity.hackathon.Crawler.CrawlerConfig;
+import com.eulerity.hackathon.Crawler.CrawlerFactory;
 import com.eulerity.hackathon.Crawler.CrawlerResults;
-import com.eulerity.hackathon.Crawler.Crawlers.ParallelBFSCrawler;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -44,7 +45,8 @@ public class ImageFinder extends HttpServlet {
 		CrawlerConfig myCrawlerConfig = CrawlerConfig.of(myBodyJson);
 		System.out.println(myCrawlerConfig.toString());
 
-		CrawlerResults myResults = new ParallelBFSCrawler(myCrawlerConfig).crawlAndScrape();
+		Crawler myCrawler = CrawlerFactory.create(myCrawlerConfig);
+		CrawlerResults myResults = myCrawler.crawlAndScrape();
 		System.out.printf("time elapsed (ms): %d\n", myResults.getCrawlTimeMs());
 
 		aRes.setContentType("text/json");

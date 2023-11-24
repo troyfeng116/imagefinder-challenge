@@ -12,6 +12,17 @@ import org.jsoup.select.Elements;
 
 import com.eulerity.hackathon.Crawler.Notifiers.CrawlerNotifier;
 
+/**
+ * Responsible for:
+ * - network I/O (retrieve page via http)
+ * - scraping with `jsoup`, extracting image srcs and neighboring link hrefs
+ * - processing all srcs/urls (reconstructing relative paths, adding protocols)
+ * - filtering URLs (avoid leaving domain, optionally avoid SVG/PNG formats)
+ * - reporting all image srcs and link hrefs to notifier
+ * 
+ * TODO:
+ * - handle network I/O exceptions (retry policy)
+ */
 public class Scraper {
     private final URL theUrl;
 

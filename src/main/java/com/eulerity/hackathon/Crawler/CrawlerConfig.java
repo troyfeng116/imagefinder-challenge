@@ -15,6 +15,7 @@ public class CrawlerConfig {
     private final int theMaxImgSrcs;
     private final boolean theShouldIncludeSVGs;
     private final boolean theShouldIncludePNGs;
+    private final boolean theIsSingleThreaded;
 
     private CrawlerConfig(Builder aBuilder) {
         theStartUrl = aBuilder.theStartUrl;
@@ -23,6 +24,7 @@ public class CrawlerConfig {
         theMaxImgSrcs = aBuilder.theMaxImgSrcs;
         theShouldIncludeSVGs = aBuilder.theShouldIncludeSVGs;
         theShouldIncludePNGs = aBuilder.theShouldIncludePNGs;
+        theIsSingleThreaded = aBuilder.theIsSingleThreaded;
     }
 
     /**
@@ -55,6 +57,8 @@ public class CrawlerConfig {
                         Constants.DEFAULT_SHOULD_INCLUDE_SVGS))
                 .withShouldIncludePNGs(readBooleanField(aReqJson, Constants.SHOULD_INCLUDE_PNGS_FIELD,
                         Constants.DEFAULT_SHOULD_INCLUDE_PNGS))
+                .withIsSingleThreaded(readBooleanField(aReqJson, Constants.IS_SINGLE_THREADED_FIELD,
+                        Constants.DEFAULT_IS_SINGLE_THREADED))
                 .build();
     }
 
@@ -82,12 +86,17 @@ public class CrawlerConfig {
         return theShouldIncludePNGs;
     }
 
+    public boolean getIsSingleThreaded() {
+        return theIsSingleThreaded;
+    }
+
     @Override
     public String toString() {
         return String.format(
-                "CrawlerConfig{%s, maxDepth=%d, maxUrls=%d, maxImgSrcs=%d, shouldIncludeSVGs=%b, shouldIncludePNGs=%b}\n",
+                "CrawlerConfig{%s, maxDepth=%d, maxUrls=%d, maxImgSrcs=%d, shouldIncludeSVGs=%b, shouldIncludePNGs=%b, isSingleThreaded=%b}\n",
                 theStartUrl.toString(),
-                theMaxDepth, theMaxUrls, theMaxImgSrcs, theShouldIncludeSVGs, theShouldIncludePNGs);
+                theMaxDepth, theMaxUrls, theMaxImgSrcs,
+                theShouldIncludeSVGs, theShouldIncludePNGs, theIsSingleThreaded);
     }
 
     private static int readIntField(JsonObject aReqJson, String aFieldName, int aDefaultValue) {
@@ -107,6 +116,7 @@ public class CrawlerConfig {
         private Integer theMaxImgSrcs;
         private boolean theShouldIncludeSVGs;
         private boolean theShouldIncludePNGs;
+        private boolean theIsSingleThreaded;
 
         public Builder(URL aStartUrl) {
             theStartUrl = aStartUrl;
@@ -134,6 +144,11 @@ public class CrawlerConfig {
 
         public Builder withShouldIncludePNGs(boolean aShouldIncludePNGs) {
             theShouldIncludePNGs = aShouldIncludePNGs;
+            return this;
+        }
+
+        public Builder withIsSingleThreaded(boolean aIsSingleThreaded) {
+            theIsSingleThreaded = aIsSingleThreaded;
             return this;
         }
 
