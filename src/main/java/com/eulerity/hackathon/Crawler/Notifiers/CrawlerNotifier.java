@@ -24,6 +24,14 @@ public abstract class CrawlerNotifier {
         return theMaxUrls;
     }
 
+    /**
+     * Wrapper around `notifyHref`: return `true` and do not notify `aHref` if not
+     * allowed by robots.txt rules.
+     *
+     * @param aHref Newly scraped and discovered anchor href.
+     * @return `true` if `aHref` is allowed, without applying `notifyHref`; else
+     *         result of `notifyHref`.
+     */
     public boolean checkAndNotifyHref(String aHref) {
         if (!theRobotRules.isAllowed(aHref)) {
             System.out.printf("[CrawlerNotifier] skipping href %s: robot rules not allowed\n", aHref);
