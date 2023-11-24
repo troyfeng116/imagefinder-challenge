@@ -8,13 +8,15 @@ import java.util.List;
 import java.util.Queue;
 import java.util.Set;
 
+import crawlercommons.robots.SimpleRobotRules;
+
 public class SerialCrawlerNotifier extends CrawlerNotifier {
     private final Set<String> theSeenUrls;
     private final Set<String> theDiscoveredImageSrcs;
     private final Queue<String> theQueuedUrls;
 
-    public SerialCrawlerNotifier(int aMaxImgSrcs, int aMaxUrls) {
-        super(aMaxImgSrcs, aMaxUrls);
+    public SerialCrawlerNotifier(int aMaxImgSrcs, int aMaxUrls, SimpleRobotRules aRobotRules) {
+        super(aMaxImgSrcs, aMaxUrls, aRobotRules);
 
         theSeenUrls = new HashSet<>();
         theDiscoveredImageSrcs = new HashSet<>();

@@ -8,13 +8,15 @@ import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
+import crawlercommons.robots.SimpleRobotRules;
+
 public class ThreadSafeCrawlerNotifier extends CrawlerNotifier {
     private final Map<String, Boolean> theSeenUrls;
     private final Map<String, Boolean> theDiscoveredImageSrcs;
     private final Queue<String> theQueuedUrls;
 
-    public ThreadSafeCrawlerNotifier(int aMaxImgSrcs, int aMaxUrls) {
-        super(aMaxImgSrcs, aMaxUrls);
+    public ThreadSafeCrawlerNotifier(int aMaxImgSrcs, int aMaxUrls, SimpleRobotRules aRobotRules) {
+        super(aMaxImgSrcs, aMaxUrls, aRobotRules);
 
         theSeenUrls = new ConcurrentHashMap<>();
         theDiscoveredImageSrcs = new ConcurrentHashMap<>();

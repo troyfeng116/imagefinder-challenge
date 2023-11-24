@@ -11,43 +11,46 @@ import com.eulerity.hackathon.Crawler.Notifiers.CrawlerNotifier;
 import com.eulerity.hackathon.Crawler.Notifiers.SerialCrawlerNotifier;
 import com.eulerity.hackathon.Scraper.Scraper;
 
-public class SerialBFSCrawler implements Crawler {
-    private final CrawlerConfig theCrawlerConfig;
+import crawlercommons.robots.SimpleRobotRules;
 
-    public SerialBFSCrawler(CrawlerConfig aCrawlerConfig) {
-        theCrawlerConfig = aCrawlerConfig;
+public class SerialBFSCrawler extends Crawler {
+    public SerialBFSCrawler(CrawlerConfig aCrawlerConfig, SimpleRobotRules aRobotRules) {
+        super(aCrawlerConfig, aRobotRules);
     }
 
     @Override
     public CrawlerResults crawlAndScrape() {
+        CrawlerConfig myCrawlerConfig = getCrawlerConfig();
         long myStartTimestampMs = System.currentTimeMillis();
-        CrawlerNotifier myNotifier = new SerialCrawlerNotifier(theCrawlerConfig.getMaxImgSrcs(),
-                theCrawlerConfig.getMaxUrls());
+        CrawlerNotifier myNotifier = new SerialCrawlerNotifier(myCrawlerConfig.getMaxImgSrcs(),
+                myCrawlerConfig.getMaxUrls(), getRobotRules());
 
-        URL myStartUrl = theCrawlerConfig.getStartUrl();
+        URL myStartUrl = myCrawlerConfig.getStartUrl();
         String myStartUrlString = myStartUrl.toString();
-        myNotifier.notifyHref(myStartUrlString);
+        myNotifier.checkAndNotifyHref(myStartUrlString);
 
         Queue<String> myLevelUrls = new LinkedList<>();
-        for (int myLevel = 0; myLevel < theCrawlerConfig.getMaxDepth()
+        for (int myLevel = 0; myLevel < myCrawlerConfig.getMaxDepth()
                 && myNotifier.drainNextUrlsQueue(myLevelUrls) > 0; myLevel++) {
             System.out.printf("scraping level=%d, %d new urls, %d seen urls\n", myLevel,
                     myLevelUrls.size(), myNotifier.getAllSeenUrls().size());
 
             while (!myLevelUrls.isEmpty()
-                    && myNotifier.getDiscoveredImgSrcs().size() < theCrawlerConfig.getMaxImgSrcs()) {
+                    && myNotifier.getDiscoveredImgSrcs().size() < myCrawlerConfig
+                            .getMaxImgSrcs()) {
                 String myUrlToScrape = myLevelUrls.poll();
-                Scraper.scrape(myUrlToScrape, theCrawlerConfig.getShouldIncludeSVGs(),
-                        theCrawlerConfig.getShouldIncludePNGs(), myNotifier);
+                Scraper.scrape(myUrlToScrape, myCrawlerConfig.getShouldIncludeSVGs(),
+                        myCrawlerConfig.getShouldIncludePNGs(), myNotifier);
             }
         }
 
         long myElapsedTimeMs = System.currentTimeMillis() - myStartTimestampMs;
-        System.out.printf("[serial] returning %d discovered img srcs after pushing %d urls onto BFS queue in %d ms\n",
+        System.out.printf(
+                "[serial] returning %d discovered img srcs after pushing %d urls onto BFS queue in %d ms\n",
                 myNotifier.getDiscoveredImgSrcs().size(),
                 myNotifier.getAllSeenUrls().size(),
                 myElapsedTimeMs);
-        return new CrawlerResults.Builder(theCrawlerConfig)
+        return new CrawlerResults.Builder(myCrawlerConfig)
                 .withImgSrcs(myNotifier.getDiscoveredImgSrcs())
                 .withCrawledUrls(myNotifier.getAllSeenUrls())
                 .withCrawlTimeMs(myElapsedTimeMs)

@@ -3,13 +3,17 @@ package com.eulerity.hackathon.Crawler.Notifiers;
 import java.util.Collection;
 import java.util.List;
 
+import crawlercommons.robots.SimpleRobotRules;
+
 public abstract class CrawlerNotifier {
     private final int theMaxImgSrcs;
     private final int theMaxUrls;
+    private final SimpleRobotRules theRobotRules;
 
-    public CrawlerNotifier(int aMaxImgSrcs, int aMaxUrls) {
+    public CrawlerNotifier(int aMaxImgSrcs, int aMaxUrls, SimpleRobotRules aRobotRules) {
         theMaxImgSrcs = aMaxImgSrcs;
         theMaxUrls = aMaxUrls;
+        theRobotRules = aRobotRules;
     }
 
     public final int getMaxImgSrcs() {
@@ -18,6 +22,15 @@ public abstract class CrawlerNotifier {
 
     public final int getMaxUrls() {
         return theMaxUrls;
+    }
+
+    public boolean checkAndNotifyHref(String aHref) {
+        if (!theRobotRules.isAllowed(aHref)) {
+            System.out.printf("[CrawlerNotifier] skipping href %s: robot rules not allowed\n", aHref);
+            return true;
+        }
+
+        return notifyHref(aHref);
     }
 
     /**

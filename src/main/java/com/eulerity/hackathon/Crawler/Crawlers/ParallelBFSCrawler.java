@@ -16,25 +16,26 @@ import com.eulerity.hackathon.Crawler.Notifiers.CrawlerNotifier;
 import com.eulerity.hackathon.Crawler.Notifiers.ThreadSafeCrawlerNotifier;
 import com.eulerity.hackathon.Scraper.Scraper;
 
-public class ParallelBFSCrawler implements Crawler {
-    private final CrawlerConfig theCrawlerConfig;
+import crawlercommons.robots.SimpleRobotRules;
 
-    public ParallelBFSCrawler(CrawlerConfig aCrawlerConfig) {
-        theCrawlerConfig = aCrawlerConfig;
+public class ParallelBFSCrawler extends Crawler {
+    public ParallelBFSCrawler(CrawlerConfig aCrawlerConfig, SimpleRobotRules aRobotRules) {
+        super(aCrawlerConfig, aRobotRules);
     }
 
     @Override
     public CrawlerResults crawlAndScrape() {
+        CrawlerConfig myCrawlerConfig = getCrawlerConfig();
         long myStartTimestampMs = System.currentTimeMillis();
-        CrawlerNotifier myNotifier = new ThreadSafeCrawlerNotifier(theCrawlerConfig.getMaxImgSrcs(),
-                theCrawlerConfig.getMaxUrls());
+        CrawlerNotifier myNotifier = new ThreadSafeCrawlerNotifier(myCrawlerConfig.getMaxImgSrcs(),
+                myCrawlerConfig.getMaxUrls(), getRobotRules());
 
-        URL myStartUrl = theCrawlerConfig.getStartUrl();
+        URL myStartUrl = myCrawlerConfig.getStartUrl();
         String myStartUrlString = myStartUrl.toString();
-        myNotifier.notifyHref(myStartUrlString);
+        myNotifier.checkAndNotifyHref(myStartUrlString);
 
         Queue<String> myLevelUrls = new LinkedList<>();
-        for (int myLevel = 0; myLevel < theCrawlerConfig.getMaxDepth()
+        for (int myLevel = 0; myLevel < myCrawlerConfig.getMaxDepth()
                 && myNotifier.drainNextUrlsQueue(myLevelUrls) > 0; myLevel++) {
             System.out.printf("scraping level=%d, %d new urls, %d seen urls\n", myLevel,
                     myLevelUrls.size(), myNotifier.getAllSeenUrls().size());
@@ -46,8 +47,8 @@ public class ParallelBFSCrawler implements Crawler {
             while (!myLevelUrls.isEmpty()) {
                 String myUrlToScrape = myLevelUrls.poll();
                 myExecutorService.execute(() -> {
-                    Scraper.scrape(myUrlToScrape, theCrawlerConfig.getShouldIncludeSVGs(),
-                            theCrawlerConfig.getShouldIncludePNGs(), myNotifier);
+                    Scraper.scrape(myUrlToScrape, myCrawlerConfig.getShouldIncludeSVGs(),
+                            myCrawlerConfig.getShouldIncludePNGs(), myNotifier);
                     myLatch.countDown();
                 });
             }
@@ -66,7 +67,7 @@ public class ParallelBFSCrawler implements Crawler {
                 myNotifier.getDiscoveredImgSrcs().size(),
                 myNotifier.getAllSeenUrls().size(),
                 myElapsedTimeMs);
-        return new CrawlerResults.Builder(theCrawlerConfig)
+        return new CrawlerResults.Builder(myCrawlerConfig)
                 .withImgSrcs(myNotifier.getDiscoveredImgSrcs())
                 .withCrawledUrls(myNotifier.getAllSeenUrls())
                 .withCrawlTimeMs(myElapsedTimeMs)

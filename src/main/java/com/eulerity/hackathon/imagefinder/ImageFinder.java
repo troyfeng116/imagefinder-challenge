@@ -51,7 +51,7 @@ public class ImageFinder extends HttpServlet {
 		System.out.println(myRules.isAllowed(myCrawlerConfig.getStartUrl().toString()));
 		System.out.println(myRules);
 
-		Crawler myCrawler = CrawlerFactory.create(myCrawlerConfig);
+		Crawler myCrawler = CrawlerFactory.create(myCrawlerConfig, myRules);
 		CrawlerResults myResults = myCrawler.crawlAndScrape();
 		System.out.printf("time elapsed (ms): %d\n", myResults.getCrawlTimeMs());
 

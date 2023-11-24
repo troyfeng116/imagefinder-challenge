@@ -1,12 +1,13 @@
 package com.eulerity.hackathon.Scraper;
 
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.jsoup.Connection;
 import org.jsoup.Jsoup;
+import org.jsoup.helper.HttpConnection.Response;
 import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
 
@@ -24,24 +25,19 @@ import com.eulerity.hackathon.Crawler.Notifiers.CrawlerNotifier;
  * - handle network I/O exceptions (retry policy)
  */
 public class Scraper {
-    private final URL theUrl;
-
-    public Scraper(String aUrlString) throws MalformedURLException {
-        theUrl = new URL(aUrlString);
-        String myProtocol = theUrl.getProtocol();
-        if (!myProtocol.equals("http") && !myProtocol.equals("https")) {
-            throw new IllegalArgumentException("URL to scrape must use http/https protocol");
-        }
-    }
-
-    public static void scrape(String aUrl,
-            boolean aShouldIncludeSVGs,
-            boolean aShouldIncludePNGs,
+    public static void scrape(String aUrl, boolean aShouldIncludeSVGs, boolean aShouldIncludePNGs,
             CrawlerNotifier aNotifier) {
         try {
             URL myUrl = new URL(aUrl);
             String myDomain = myUrl.getHost();
-            Document myDocument = Jsoup.connect(aUrl).get();
+            Connection myConnection = Jsoup.connect(aUrl);
+            Connection.Response myResponse = myConnection.execute();
+            Document myDocument = myResponse.parse();
+            int myStatusCode = myConnection.response().statusCode();
+            // System.out.println(myStatusCode);
+            if (myStatusCode != 200) {
+                // TODO: retry policy
+            }
 
             Elements myAnchorElements = myDocument.getElementsByTag("a");
             List<String> myAnchorHrefs = myAnchorElements.stream()
@@ -62,12 +58,14 @@ public class Scraper {
                     .collect(Collectors.toList());
             // System.out.println(myImgSrcs.stream().collect(Collectors.joining(",")));
 
-            System.out.printf("scraped %s, found %d img src and %d neighbor urls\n", myUrl.toString(), myImgSrcs.size(),
-                    myAnchorHrefs.size());
+            System.out.printf("[Scraper] scraped %s, found %d img src and %d neighbor urls, status=%d\n",
+                    myUrl.toString(),
+                    myImgSrcs.size(),
+                    myAnchorHrefs.size(), myStatusCode);
 
             // `allMatch`: lazy streams stop iteration once `apply` fails
             myImgSrcs.stream().allMatch(aNotifier::notifyImgSrc);
-            myAnchorHrefs.stream().allMatch(aNotifier::notifyHref);
+            myAnchorHrefs.stream().allMatch(aNotifier::checkAndNotifyHref);
         } catch (IOException myException) {
             System.out.println(myException);
             return;
