@@ -15,12 +15,13 @@ import com.eulerity.hackathon.Crawler.CrawlerResults;
 import com.eulerity.hackathon.Crawler.Notifiers.CrawlerNotifier;
 import com.eulerity.hackathon.Crawler.Notifiers.ThreadSafeCrawlerNotifier;
 import com.eulerity.hackathon.Scraper.Scraper;
+import com.eulerity.hackathon.Scraper.RetryPolicy.RetryPolicy;
 
 import crawlercommons.robots.SimpleRobotRules;
 
 public class ParallelBFSCrawler extends Crawler {
-    public ParallelBFSCrawler(CrawlerConfig aCrawlerConfig, SimpleRobotRules aRobotRules) {
-        super(aCrawlerConfig, aRobotRules);
+    public ParallelBFSCrawler(CrawlerConfig aCrawlerConfig, SimpleRobotRules aRobotRules, RetryPolicy aRetryPolicy) {
+        super(aCrawlerConfig, aRobotRules, aRetryPolicy);
     }
 
     @Override
@@ -37,7 +38,7 @@ public class ParallelBFSCrawler extends Crawler {
         Queue<String> myLevelUrls = new LinkedList<>();
         for (int myLevel = 0; myLevel < myCrawlerConfig.getMaxDepth()
                 && myNotifier.drainNextUrlsQueue(myLevelUrls) > 0; myLevel++) {
-            System.out.printf("scraping level=%d, %d new urls, %d seen urls\n", myLevel,
+            System.out.printf("[ParallelBFSCrawler] scraping level=%d, %d new urls, %d seen urls\n", myLevel,
                     myLevelUrls.size(), myNotifier.getAllSeenUrls().size());
             int myLevelSz = myLevelUrls.size();
 
@@ -48,13 +49,15 @@ public class ParallelBFSCrawler extends Crawler {
                 String myUrlToScrape = myLevelUrls.poll();
                 myExecutorService.execute(() -> {
                     Scraper.scrape(myUrlToScrape, myCrawlerConfig.getShouldIncludeSVGs(),
-                            myCrawlerConfig.getShouldIncludePNGs(), myNotifier);
+                            myCrawlerConfig.getShouldIncludePNGs(), myNotifier, getRetryPolicy());
                     myLatch.countDown();
                 });
             }
 
-            System.out.printf("awaiting latch for level %d with %d urls executing\n", myLevel, myLevelSz);
+            System.out.printf("[ParallelBFSCrawler] awaiting latch for level %d with %d urls executing\n", myLevel,
+                    myLevelSz);
             try {
+                // TODO: dynamically count down from max configured time limit
                 myLatch.await(5, TimeUnit.SECONDS);
                 myExecutorService.shutdownNow();
             } catch (InterruptedException myException) {
@@ -63,7 +66,8 @@ public class ParallelBFSCrawler extends Crawler {
         }
 
         long myElapsedTimeMs = System.currentTimeMillis() - myStartTimestampMs;
-        System.out.printf("[parallel] returning %d discovered img srcs after pushing %d urls onto BFS queue in %d ms\n",
+        System.out.printf(
+                "[ParallelBFSCrawler] returning %d discovered img srcs after pushing %d urls onto BFS queue in %d ms\n",
                 myNotifier.getDiscoveredImgSrcs().size(),
                 myNotifier.getAllSeenUrls().size(),
                 myElapsedTimeMs);
