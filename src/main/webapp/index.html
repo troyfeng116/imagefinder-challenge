@@ -1,60 +1,85 @@
 <html>
-	<head>
+<head>
+	<link rel="stylesheet" href="index.css" />
 </head>
 <body>
-	<h1>Eulerity Take-Home Challenge</h1>
-	<div class="content">
-		<div class="input">
-			<form>
-				<div>
-					<label for="url">Starting URL (http/https)</label>
-					<input type="text" id="url">
-				</div>
+	<main class="main-container">
+		<h1>Eulerity Take-Home Challenge</h1>
+		<div class="about-container">
+			<h3>About</h3>
+			<p>Scan your favorite websites and extract all images.</p>
+			<p>Automatically scans URLs with the same domain to discover more images.</p>
 
-				<div>
-					<label for="max-imgs">Maximum images to retrieve</label>
-					<input type="number" value="100" id="max-imgs">
-				</div>
-
-				<div>
-					<label for="max-pages">Maximum distinct pages to crawl</label>
-					<input type="number" value="20" id="max-pages">
-				</div>
-
-				<div>
-					<label for="max-depth">Maximum crawl depth</label>
-					<input type="number" value="5" id="max-depth">
-				</div>
-
-				<div>
-					<label for="is-single-threaded">Use single thread? (usually significantly slower)</label>
-					<input type="checkbox" id="is-single-threaded">
-				</div>
-
-				<div>
-					<label for="include-svgs">Include SVGs? (very often used for icons/logos)</label>
-					<input type="checkbox" id="include-svgs">
-				</div>
-
-				<div>
-					<label for="include-pngs">Include PNGs? (sometimes used for icons/logos)</label>
-					<input type="checkbox" id="include-pngs">
-				</div>
-
-				<div>
-					<label for="max-crawl-time-ms">Maximum crawl time (ms)</label>
-					<input type="number" value="3333" id="max-crawl-time-ms">
-				</div>
-			</form>
-			<button type="button">Submit!</button>
-		</div>
-		<div class="output">
-			<p class="results-size"></p>
-			<ul class="results">
-
+			<p>Features:</p>
+			<ul>
+				<li>Highly configurable from frontend interface: specify search limits and behavior</li>
+				<ul>
+					<li>maximum images: hard upper limit on number of images to return</li>
+					<li>maximum URLs: hard upper limit on number of URLs to search when jumping across same domain</li>
+					<li>maximum search depth: hard upper limit for jumping to URLs within the same domain</li>
+					<li>maximum time limit: soft/approximate time limit, in milliseconds, for the total search time</li>
+					<li>include PNGs/SVGs: for websites with logos/icons in PNG/SVG format, choose to enable/disable these image formats in search</li>
+					<li>use single/multi-threading: may improve performance if server under high load (due to Java kernel thread mapping model)</li>
+				</ul>
+				<li>If multi-threaded, implementation is completely thread-safe</li>
+				<li>Fetches, parses, and follows <code>robots.txt</code> rules during crawl</li>
+				<li>Detailed <code>slf4j/log4j</code> server logs</li>
+				<li>Best Java practices (Java 8 streams, factory/builder/singleton patterns, etc.)</li>
 			</ul>
 		</div>
-	</div>
+		<div class="content">
+			<div class="input-container">
+				<form>
+					<div>
+						<label for="url">Starting URL (http/https)</label>
+						<input type="text" id="url">
+					</div>
+
+					<div>
+						<label for="max-imgs">Maximum images to retrieve</label>
+						<input type="number" value="100" id="max-imgs">
+					</div>
+
+					<div>
+						<label for="max-pages">Maximum distinct pages to crawl</label>
+						<input type="number" value="20" id="max-pages">
+					</div>
+
+					<div>
+						<label for="max-depth">Maximum crawl depth</label>
+						<input type="number" value="5" id="max-depth">
+					</div>
+
+					<div>
+						<label for="is-single-threaded">Use single thread? (usually significantly slower)</label>
+						<input type="checkbox" id="is-single-threaded">
+					</div>
+
+					<div>
+						<label for="include-svgs">Include SVGs? (very often used for icons/logos)</label>
+						<input type="checkbox" id="include-svgs">
+					</div>
+
+					<div>
+						<label for="include-pngs">Include PNGs? (sometimes used for icons/logos)</label>
+						<input type="checkbox" id="include-pngs">
+					</div>
+
+					<div>
+						<label for="max-crawl-time-ms">Maximum crawl time (ms)</label>
+						<input type="number" value="3333" id="max-crawl-time-ms">
+					</div>
+				</form>
+				<button type="button">Submit!</button>
+			</div>
+			<div class="output">
+				<p class="results-size"></p>
+				<ul class="results">
+
+				</ul>
+			</div>
+		</div>
+	</main>
 	<script>
 		var resultsSizeText = document.querySelector('p.results-size');
 		var resultList = document.querySelector('ul.results');
