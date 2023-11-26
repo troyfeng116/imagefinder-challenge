@@ -53,8 +53,7 @@ public class SerialBFSCrawler extends Crawler {
 
                     LOGGER.info(String.format(
                             "scraped url %s: sleeping for %d ms after scrape time %d ms to respect robots.txt crawl delay %d ms",
-                            getClass(), myUrlToScrape, myUntilCanCrawlAgainMs, myUrlElapsedTimeMs,
-                            myRobotsCrawlDelayMs));
+                            myUrlToScrape, myUntilCanCrawlAgainMs, myUrlElapsedTimeMs, myRobotsCrawlDelayMs));
                     try {
                         Thread.sleep(myUntilCanCrawlAgainMs);
                     } catch (InterruptedException myException) {

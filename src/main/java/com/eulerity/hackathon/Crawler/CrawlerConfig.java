@@ -111,7 +111,7 @@ public class CrawlerConfig {
     @Override
     public String toString() {
         return String.format(
-                "CrawlerConfig{%s, maxDepth=%d, maxUrls=%d, maxImgSrcs=%d, shouldIncludeSVGs=%b, shouldIncludePNGs=%b, isSingleThreaded=%b, maxCrawlTimeMs=%d}\n",
+                "CrawlerConfig{%s, maxDepth=%d, maxUrls=%d, maxImgSrcs=%d, shouldIncludeSVGs=%b, shouldIncludePNGs=%b, isSingleThreaded=%b, maxCrawlTimeMs=%d}",
                 theStartUrl.toString(),
                 theMaxDepth, theMaxUrls, theMaxImgSrcs,
                 theShouldIncludeSVGs, theShouldIncludePNGs, theIsSingleThreaded,
