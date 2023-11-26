@@ -9,6 +9,8 @@ import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.eulerity.hackathon.Crawler.CrawlerConfig;
 import com.eulerity.hackathon.Crawler.CrawlerUtils;
@@ -28,13 +30,15 @@ import com.eulerity.hackathon.Scraper.RetryPolicy.RetryPolicy;
  * @return `true` iff an HTTP GET request was successfully made.
  */
 public class Scraper {
+    private static final Logger LOGGER = LoggerFactory.getLogger(Scraper.class);
+
     public static boolean scrape(String aUrlString, CrawlerConfig aCrawlerConfig,
             CrawlerNotifier aNotifier, RetryPolicy aRetryPolicy, long aTimeLimitMs) {
         URL myUrl;
         try {
             myUrl = new URL(aUrlString);
-        } catch (MalformedURLException e) {
-            System.err.println(e);
+        } catch (MalformedURLException myException) {
+            LOGGER.error(myException.getMessage());
             return false;
         }
 
@@ -62,10 +66,10 @@ public class Scraper {
                 .map(mySrc -> getFullUrl(myUrl, mySrc))
                 .collect(Collectors.toList());
 
-        System.out.printf("[Scraper] scraped %s, found %d img src and %d neighbor urls\n",
+        LOGGER.debug(String.format("scraped %s, found %d img src and %d neighbor urls",
                 myUrl.toString(),
                 myImgSrcs.size(),
-                myAnchorHrefs.size());
+                myAnchorHrefs.size()));
 
         // `allMatch`: lazy streams stop iteration once `apply` fails
         myImgSrcs.stream().allMatch(aNotifier::notifyImgSrc);
@@ -102,20 +106,20 @@ public class Scraper {
                 if (myStatusCode == 500 || myStatusCode == 502 || myStatusCode == 503 || myStatusCode == 504) {
                     long myRetryDelayMs = aRetryPolicy.getNextRetryMs();
                     if (myRetryDelayMs == RetryPolicy.DO_NOT_RETRY) {
-                        System.out.printf("[Scraper] no longer retrying for status %d\n", myStatusCode);
+                        LOGGER.debug(String.format("no longer retrying for status %d\n", myStatusCode));
                         return null;
                     }
 
                     // retry
-                    System.out.printf("[Scraper] retrying for status %d after %d ms sleep\n", myStatusCode,
-                            myRetryDelayMs);
+                    LOGGER.debug(String.format("retrying for status %d after %d ms sleep\n", myStatusCode,
+                            myRetryDelayMs));
                     myDocument = null;
                     Thread.sleep(myRetryDelayMs);
                 } else {
                     return null;
                 }
             } catch (Exception myException) {
-                System.out.println(myException);
+                LOGGER.error(myException.getMessage());
                 return null;
             }
         }

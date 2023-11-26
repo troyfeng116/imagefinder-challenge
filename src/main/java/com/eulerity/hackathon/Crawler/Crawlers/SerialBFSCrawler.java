@@ -2,6 +2,9 @@ package com.eulerity.hackathon.Crawler.Crawlers;
 
 import java.util.Queue;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.eulerity.hackathon.Crawler.Crawler;
 import com.eulerity.hackathon.Crawler.CrawlerConfig;
 import com.eulerity.hackathon.Crawler.CrawlerUtils;
@@ -13,6 +16,8 @@ import com.eulerity.hackathon.Scraper.RetryPolicy.RetryPolicy;
 import crawlercommons.robots.SimpleRobotRules;
 
 public class SerialBFSCrawler extends Crawler {
+    private static final Logger LOGGER = LoggerFactory.getLogger(SerialBFSCrawler.class);
+
     public SerialBFSCrawler(CrawlerConfig aCrawlerConfig, SimpleRobotRules aRobotRules, RetryPolicy aRetryPolicy) {
         super(aCrawlerConfig, aRobotRules, aRetryPolicy,
                 CrawlerNotifierFactory.create(true,
@@ -46,14 +51,14 @@ public class SerialBFSCrawler extends Crawler {
                         return false;
                     }
 
-                    System.out.printf(
-                            "[%s] scraped url %s: sleeping for %d ms after scrape time %d ms to respect robots.txt crawl delay %d ms\n",
+                    LOGGER.info(String.format(
+                            "scraped url %s: sleeping for %d ms after scrape time %d ms to respect robots.txt crawl delay %d ms",
                             getClass(), myUrlToScrape, myUntilCanCrawlAgainMs, myUrlElapsedTimeMs,
-                            myRobotsCrawlDelayMs);
+                            myRobotsCrawlDelayMs));
                     try {
                         Thread.sleep(myUntilCanCrawlAgainMs);
                     } catch (InterruptedException myException) {
-                        System.err.println(myException);
+                        LOGGER.error(myException.getMessage());
                         break;
                     }
                 }

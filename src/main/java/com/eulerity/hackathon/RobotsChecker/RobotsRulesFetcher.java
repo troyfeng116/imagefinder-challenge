@@ -25,7 +25,6 @@ public class RobotsRulesFetcher {
         SimpleRobotRulesParser myParser = new SimpleRobotRulesParser();
         HttpURLConnection myConnection = (HttpURLConnection) myUrl.openConnection();
         int myStatusCode = myConnection.getResponseCode();
-        System.out.println(myStatusCode);
         SimpleRobotRules myRules;
         if (myStatusCode != 200) {
             myRules = myParser.failedFetch(myStatusCode);

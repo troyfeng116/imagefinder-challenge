@@ -10,6 +10,9 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.eulerity.hackathon.Crawler.Crawler;
 import com.eulerity.hackathon.Crawler.CrawlerConfig;
 import com.eulerity.hackathon.Crawler.CrawlerFactory;
@@ -24,6 +27,8 @@ import crawlercommons.robots.SimpleRobotRules;
 @WebServlet(name = "ImageFinder", urlPatterns = { "/main" })
 public class ImageFinder extends HttpServlet {
 	private static final long SERIAL_VERSION_UID = 1L;
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(ImageFinder.class);
 
 	protected static final Gson GSON = new GsonBuilder().create();
 
@@ -40,20 +45,19 @@ public class ImageFinder extends HttpServlet {
 			throws ServletException, IOException {
 		String myPath = aReq.getServletPath();
 		String myBody = extractPostBody(aReq);
-		System.out.println(String.format("Got request to: %s with body: %s", myPath, myBody));
+		LOGGER.info(String.format("Got request to: %s with body: %s", myPath, myBody));
 
 		// TODO: handle invalid json
 		JsonObject myBodyJson = GSON.fromJson(myBody, JsonObject.class);
 		CrawlerConfig myCrawlerConfig = CrawlerConfig.of(myBodyJson);
-		System.out.println(myCrawlerConfig.toString());
+		LOGGER.info(String.format("CrawlerConfig %s", myCrawlerConfig.toString()));
 
 		SimpleRobotRules myRules = RobotsRulesFetcher.fetchRules(myCrawlerConfig.getStartUrl());
-		System.out.println(myRules.isAllowed(myCrawlerConfig.getStartUrl().toString()));
-		System.out.println(myRules);
+		LOGGER.info(String.format("robots.txt rules: %s", myRules));
 
 		Crawler myCrawler = CrawlerFactory.create(myCrawlerConfig, myRules);
 		CrawlerResults myResults = myCrawler.crawlAndScrape();
-		System.out.printf("time elapsed (ms): %d\n", myResults.getCrawlTimeMs());
+		LOGGER.info(String.format("time elapsed: %d ms", myResults.getCrawlTimeMs()));
 
 		aRes.setContentType("text/json");
 		aRes.getWriter().print(GSON.toJson(new ArrayList<>(myResults.getImgSrcs())));

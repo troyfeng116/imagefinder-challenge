@@ -3,9 +3,14 @@ package com.eulerity.hackathon.Crawler.Notifiers;
 import java.util.Collection;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import crawlercommons.robots.SimpleRobotRules;
 
 public abstract class CrawlerNotifier {
+    private static final Logger LOGGER = LoggerFactory.getLogger(CrawlerNotifier.class);
+
     private final int theMaxImgSrcs;
     private final int theMaxUrls;
     private final SimpleRobotRules theRobotRules;
@@ -34,7 +39,7 @@ public abstract class CrawlerNotifier {
      */
     public boolean checkAndNotifyHref(String aHref) {
         if (!theRobotRules.isAllowed(aHref)) {
-            System.out.printf("[CrawlerNotifier] skipping href %s: robot rules not allowed\n", aHref);
+            LOGGER.info(String.format("skipping href %s: robot rules not allowed", aHref));
             return true;
         }
 

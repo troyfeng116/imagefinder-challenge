@@ -7,6 +7,9 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.eulerity.hackathon.Crawler.Crawler;
 import com.eulerity.hackathon.Crawler.CrawlerConfig;
 import com.eulerity.hackathon.Crawler.CrawlerUtils;
@@ -18,6 +21,8 @@ import com.eulerity.hackathon.Scraper.RetryPolicy.RetryPolicy;
 import crawlercommons.robots.SimpleRobotRules;
 
 public class ParallelBFSCrawler extends Crawler {
+    private static final Logger LOGGER = LoggerFactory.getLogger(ParallelBFSCrawler.class);
+
     public ParallelBFSCrawler(CrawlerConfig aCrawlerConfig, SimpleRobotRules aRobotRules, RetryPolicy aRetryPolicy) {
         super(aCrawlerConfig, aRobotRules, aRetryPolicy,
                 CrawlerNotifierFactory.create(true, aCrawlerConfig.getMaxImgSrcs(), aCrawlerConfig.getMaxUrls(),
@@ -46,13 +51,12 @@ public class ParallelBFSCrawler extends Crawler {
 
         long myLatchTimeoutMs = Math.max(0,
                 myCrawlerConfig.getMaxCrawlTimeMs() - CrawlerUtils.getTimeElapsedSinceMs(aStartTimestampMs));
-        System.out.printf("[%s] awaiting latch for level %d with %d urls executing\n", getClass(), aLevel,
-                myLevelSz);
+        LOGGER.info(String.format("awaiting latch for level %d with %d urls executing", aLevel, myLevelSz));
         try {
             myLatch.await(myLatchTimeoutMs, TimeUnit.MILLISECONDS);
             myExecutorService.shutdownNow();
         } catch (InterruptedException myException) {
-            System.err.println(myException);
+            LOGGER.error(myException.getMessage());
         }
 
         return true;
