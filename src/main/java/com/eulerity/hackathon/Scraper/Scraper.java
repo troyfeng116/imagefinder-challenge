@@ -10,12 +10,15 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
 
+import com.eulerity.hackathon.Crawler.CrawlerConfig;
+import com.eulerity.hackathon.Crawler.CrawlerUtils;
 import com.eulerity.hackathon.Crawler.Notifiers.CrawlerNotifier;
 import com.eulerity.hackathon.Scraper.RetryPolicy.RetryPolicy;
 
 /**
  * Responsible for:
  * - network I/O (retrieve page via http)
+ * - respects maxCrawlTimeMs specified in CrawlerConfig via connection timeout
  * - handles non-200 status codes according to retry policy
  * - scraping with `jsoup`, extracting image srcs and neighboring link hrefs
  * - processing all srcs/urls (reconstructing relative paths, adding protocols)
@@ -25,8 +28,8 @@ import com.eulerity.hackathon.Scraper.RetryPolicy.RetryPolicy;
  * @return `true` iff an HTTP GET request was successfully made.
  */
 public class Scraper {
-    public static boolean scrape(String aUrlString, boolean aShouldIncludeSVGs, boolean aShouldIncludePNGs,
-            CrawlerNotifier aNotifier, RetryPolicy aRetryPolicy) {
+    public static boolean scrape(String aUrlString, CrawlerConfig aCrawlerConfig,
+            CrawlerNotifier aNotifier, RetryPolicy aRetryPolicy, long aTimeLimitMs) {
         URL myUrl;
         try {
             myUrl = new URL(aUrlString);
@@ -35,7 +38,7 @@ public class Scraper {
             return false;
         }
 
-        Document myDocument = attemptToGetHtmlWithRetry(myUrl, aRetryPolicy);
+        Document myDocument = attemptToGetHtmlWithRetry(myUrl, aRetryPolicy, aTimeLimitMs);
         if (myDocument == null) {
             return false;
         }
@@ -54,8 +57,8 @@ public class Scraper {
         List<String> myImgSrcs = myImgElements.stream()
                 .map((myElement) -> myElement.attr("src"))
                 .filter(mySrc -> mySrc != null && mySrc.length() > 0)
-                .filter(mySrc -> aShouldIncludeSVGs ? true : !mySrc.contains(".svg"))
-                .filter(mySrc -> aShouldIncludePNGs ? true : !mySrc.contains(".png"))
+                .filter(mySrc -> aCrawlerConfig.getShouldIncludeSVGs() ? true : !mySrc.contains(".svg"))
+                .filter(mySrc -> aCrawlerConfig.getShouldIncludePNGs() ? true : !mySrc.contains(".png"))
                 .map(mySrc -> getFullUrl(myUrl, mySrc))
                 .collect(Collectors.toList());
 
@@ -79,12 +82,17 @@ public class Scraper {
      * @return `Document` object if 200 status code response, `null` if no
      *         successful tries.
      */
-    private static Document attemptToGetHtmlWithRetry(URL aUrl, RetryPolicy aRetryPolicy) {
+    private static Document attemptToGetHtmlWithRetry(URL aUrl, RetryPolicy aRetryPolicy, long aTimeLimitMs) {
+        long myStartTimestampMs = System.currentTimeMillis();
         Document myDocument = null;
         while (myDocument == null) {
             try {
                 Connection myConnection = Jsoup.connect(aUrl.toString());
-                Connection.Response myResponse = myConnection.execute();
+                int myTimeRemainingMs = Math.max(1,
+                        (int) (aTimeLimitMs - CrawlerUtils.getTimeElapsedSinceMs(myStartTimestampMs)));
+                Connection.Response myResponse = myConnection
+                        .timeout(myTimeRemainingMs)
+                        .execute();
                 myDocument = myResponse.parse();
                 int myStatusCode = myConnection.response().statusCode();
                 if (myStatusCode == 200) {

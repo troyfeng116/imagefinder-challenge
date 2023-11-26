@@ -16,6 +16,7 @@ public class CrawlerConfig {
     private final boolean theShouldIncludeSVGs;
     private final boolean theShouldIncludePNGs;
     private final boolean theIsSingleThreaded;
+    private final long theMaxCrawlTimeMs;
 
     private CrawlerConfig(Builder aBuilder) {
         theStartUrl = aBuilder.theStartUrl;
@@ -25,6 +26,7 @@ public class CrawlerConfig {
         theShouldIncludeSVGs = aBuilder.theShouldIncludeSVGs;
         theShouldIncludePNGs = aBuilder.theShouldIncludePNGs;
         theIsSingleThreaded = aBuilder.theIsSingleThreaded;
+        theMaxCrawlTimeMs = aBuilder.theMaxCrawlTimeMs;
     }
 
     /**
@@ -50,15 +52,27 @@ public class CrawlerConfig {
         URL myUrl = new URL(myUrlString);
 
         return new Builder(myUrl)
-                .withMaxDepth(readIntField(aReqJson, Constants.MAX_DEPTH_FIELD, Constants.DEFAULT_MAX_DEPTH))
-                .withMaxUrls(readIntField(aReqJson, Constants.MAX_URLS_FIELD, Constants.DEFAULT_MAX_URLS))
-                .withMaxImgSrcs(readIntField(aReqJson, Constants.MAX_IMG_SRCS_FIELD, Constants.DEFAULT_MAX_IMG_SRCS))
-                .withShouldIncludeSVGs(readBooleanField(aReqJson, Constants.SHOULD_INCLUDE_SVGS_FIELD,
-                        Constants.DEFAULT_SHOULD_INCLUDE_SVGS))
-                .withShouldIncludePNGs(readBooleanField(aReqJson, Constants.SHOULD_INCLUDE_PNGS_FIELD,
-                        Constants.DEFAULT_SHOULD_INCLUDE_PNGS))
-                .withIsSingleThreaded(readBooleanField(aReqJson, Constants.IS_SINGLE_THREADED_FIELD,
-                        Constants.DEFAULT_IS_SINGLE_THREADED))
+                .withMaxDepth(readFieldFromJson(aReqJson,
+                        Constants.MAX_DEPTH_FIELD, Constants.DEFAULT_MAX_DEPTH,
+                        aJsonElement -> aJsonElement.getAsInt()))
+                .withMaxUrls(readFieldFromJson(aReqJson,
+                        Constants.MAX_URLS_FIELD, Constants.DEFAULT_MAX_URLS,
+                        aJsonElement -> aJsonElement.getAsInt()))
+                .withMaxImgSrcs(readFieldFromJson(aReqJson,
+                        Constants.MAX_IMG_SRCS_FIELD, Constants.DEFAULT_MAX_IMG_SRCS,
+                        aJsonElement -> aJsonElement.getAsInt()))
+                .withShouldIncludeSVGs(readFieldFromJson(aReqJson,
+                        Constants.SHOULD_INCLUDE_SVGS_FIELD, Constants.DEFAULT_SHOULD_INCLUDE_SVGS,
+                        aJsonElement -> aJsonElement.getAsBoolean()))
+                .withShouldIncludePNGs(readFieldFromJson(aReqJson,
+                        Constants.SHOULD_INCLUDE_PNGS_FIELD, Constants.DEFAULT_SHOULD_INCLUDE_PNGS,
+                        aJsonElement -> aJsonElement.getAsBoolean()))
+                .withIsSingleThreaded(readFieldFromJson(aReqJson,
+                        Constants.IS_SINGLE_THREADED_FIELD, Constants.DEFAULT_IS_SINGLE_THREADED,
+                        aJsonElement -> aJsonElement.getAsBoolean()))
+                .withMaxCrawlTimeMs(readFieldFromJson(aReqJson,
+                        Constants.MAX_CRAWL_TIME_MS_FIELD, Constants.DEFAULT_MAX_CRAWL_TIME_MS,
+                        aJsonElement -> aJsonElement.getAsLong()))
                 .build();
     }
 
@@ -90,23 +104,24 @@ public class CrawlerConfig {
         return theIsSingleThreaded;
     }
 
+    public long getMaxCrawlTimeMs() {
+        return theMaxCrawlTimeMs;
+    }
+
     @Override
     public String toString() {
         return String.format(
-                "CrawlerConfig{%s, maxDepth=%d, maxUrls=%d, maxImgSrcs=%d, shouldIncludeSVGs=%b, shouldIncludePNGs=%b, isSingleThreaded=%b}\n",
+                "CrawlerConfig{%s, maxDepth=%d, maxUrls=%d, maxImgSrcs=%d, shouldIncludeSVGs=%b, shouldIncludePNGs=%b, isSingleThreaded=%b, maxCrawlTimeMs=%d}\n",
                 theStartUrl.toString(),
                 theMaxDepth, theMaxUrls, theMaxImgSrcs,
-                theShouldIncludeSVGs, theShouldIncludePNGs, theIsSingleThreaded);
+                theShouldIncludeSVGs, theShouldIncludePNGs, theIsSingleThreaded,
+                theMaxCrawlTimeMs);
     }
 
-    private static int readIntField(JsonObject aReqJson, String aFieldName, int aDefaultValue) {
+    private static <T> T readFieldFromJson(JsonObject aReqJson, String aFieldName, T aDefaultValue,
+            JsonElementGetter<T> aJsonElementGetter) {
         Optional<JsonElement> myOptionalJson = Optional.ofNullable(aReqJson.get(aFieldName));
-        return myOptionalJson.isPresent() ? myOptionalJson.get().getAsInt() : aDefaultValue;
-    }
-
-    private static boolean readBooleanField(JsonObject aReqJson, String aFieldName, boolean aDefaultValue) {
-        Optional<JsonElement> myOptionalJson = Optional.ofNullable(aReqJson.get(aFieldName));
-        return myOptionalJson.isPresent() ? myOptionalJson.get().getAsBoolean() : aDefaultValue;
+        return myOptionalJson.isPresent() ? aJsonElementGetter.getFromJsonElement(myOptionalJson.get()) : aDefaultValue;
     }
 
     public static class Builder {
@@ -117,6 +132,7 @@ public class CrawlerConfig {
         private boolean theShouldIncludeSVGs;
         private boolean theShouldIncludePNGs;
         private boolean theIsSingleThreaded;
+        private long theMaxCrawlTimeMs;
 
         public Builder(URL aStartUrl) {
             theStartUrl = aStartUrl;
@@ -152,8 +168,18 @@ public class CrawlerConfig {
             return this;
         }
 
+        public Builder withMaxCrawlTimeMs(long aMaxCrawlTimeMs) {
+            theMaxCrawlTimeMs = aMaxCrawlTimeMs;
+            return this;
+        }
+
         public CrawlerConfig build() {
             return new CrawlerConfig(this);
         }
+    }
+
+    @FunctionalInterface
+    private static interface JsonElementGetter<T> {
+        T getFromJsonElement(JsonElement aJsonElement);
     }
 }
