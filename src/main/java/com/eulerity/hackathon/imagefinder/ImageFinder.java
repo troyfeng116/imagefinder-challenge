@@ -14,7 +14,7 @@ import com.eulerity.hackathon.Crawler.Crawler;
 import com.eulerity.hackathon.Crawler.CrawlerConfig;
 import com.eulerity.hackathon.Crawler.CrawlerFactory;
 import com.eulerity.hackathon.Crawler.CrawlerResults;
-import com.eulerity.hackathon.RobotsChecker.RobotsChecker;
+import com.eulerity.hackathon.RobotsChecker.RobotsRulesFetcher;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
@@ -47,7 +47,7 @@ public class ImageFinder extends HttpServlet {
 		CrawlerConfig myCrawlerConfig = CrawlerConfig.of(myBodyJson);
 		System.out.println(myCrawlerConfig.toString());
 
-		SimpleRobotRules myRules = RobotsChecker.checkRobots(myCrawlerConfig.getStartUrl());
+		SimpleRobotRules myRules = RobotsRulesFetcher.fetchRules(myCrawlerConfig.getStartUrl());
 		System.out.println(myRules.isAllowed(myCrawlerConfig.getStartUrl().toString()));
 		System.out.println(myRules);
 
