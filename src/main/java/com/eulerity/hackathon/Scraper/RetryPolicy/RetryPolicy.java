@@ -18,7 +18,7 @@ public abstract class RetryPolicy {
         return theMaxRetries;
     }
 
-    public final long getNextRetryMs() {
+    public long getNextRetryMs() {
         if (theRetries >= theMaxRetries) {
             return DO_NOT_RETRY;
         }

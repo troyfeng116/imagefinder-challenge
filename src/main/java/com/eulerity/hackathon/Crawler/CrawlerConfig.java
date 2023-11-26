@@ -126,9 +126,9 @@ public class CrawlerConfig {
 
     public static class Builder {
         private final URL theStartUrl;
-        private Integer theMaxDepth;
-        private Integer theMaxUrls;
-        private Integer theMaxImgSrcs;
+        private int theMaxDepth;
+        private int theMaxUrls;
+        private int theMaxImgSrcs;
         private boolean theShouldIncludeSVGs;
         private boolean theShouldIncludePNGs;
         private boolean theIsSingleThreaded;

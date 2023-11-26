@@ -11,6 +11,7 @@ import com.eulerity.hackathon.Crawler.CrawlerUtils;
 import com.eulerity.hackathon.Crawler.Notifiers.CrawlerNotifier;
 import com.eulerity.hackathon.Crawler.Notifiers.CrawlerNotifierFactory;
 import com.eulerity.hackathon.Scraper.Scraper;
+import com.eulerity.hackathon.Scraper.DocumentFetcher.DefaultDocumentFetcher;
 import com.eulerity.hackathon.Scraper.RetryPolicy.RetryPolicy;
 
 import crawlercommons.robots.SimpleRobotRules;
@@ -26,6 +27,7 @@ public class SerialBFSCrawler extends Crawler {
 
     @Override
     public boolean handleCrawlLevel(long aStartTimestampMs, int aLevel, Queue<String> aLevelUrls) {
+        Scraper myScraper = getScraper();
         CrawlerNotifier myCrawlerNotifier = getCrawlerNotifier();
         CrawlerConfig myCrawlerConfig = getCrawlerConfig();
         long myRobotsCrawlDelayMs = getRobotRules().getCrawlDelay() * 1000;
@@ -36,8 +38,8 @@ public class SerialBFSCrawler extends Crawler {
                         - CrawlerUtils.getTimeElapsedSinceMs(aStartTimestampMs)) > 0) {
             long myUrlStartTimestampMs = System.currentTimeMillis();
             String myUrlToScrape = aLevelUrls.poll();
-            if (Scraper.scrape(myUrlToScrape, myCrawlerConfig, myCrawlerNotifier, getRetryPolicy(),
-                    myRemainingCrawlTimeMs)) {
+            if (myScraper.scrape(myUrlToScrape, myCrawlerConfig, myCrawlerNotifier, getRetryPolicy(),
+                    myRemainingCrawlTimeMs, DefaultDocumentFetcher.INSTANCE)) {
                 // serial crawler used for sites with robots.txt crawl-delay specified
                 // -> sleep until delay elapses if needed
                 long myUrlElapsedTimeMs = CrawlerUtils.getTimeElapsedSinceMs(myUrlStartTimestampMs);

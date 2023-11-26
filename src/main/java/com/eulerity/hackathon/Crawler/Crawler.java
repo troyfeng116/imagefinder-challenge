@@ -8,6 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.eulerity.hackathon.Crawler.Notifiers.CrawlerNotifier;
+import com.eulerity.hackathon.Scraper.Scraper;
 import com.eulerity.hackathon.Scraper.RetryPolicy.RetryPolicy;
 
 import crawlercommons.robots.SimpleRobotRules;
@@ -19,6 +20,7 @@ public abstract class Crawler {
     private final SimpleRobotRules theRobotRules;
     private final RetryPolicy theRetryPolicy;
     private final CrawlerNotifier theCrawlerNotifier;
+    private final Scraper theScraper;
 
     public Crawler(CrawlerConfig aCrawlerConfig, SimpleRobotRules aRobotRules, RetryPolicy aRetryPolicy,
             CrawlerNotifier aCrawlerNotifier) {
@@ -26,6 +28,7 @@ public abstract class Crawler {
         theRobotRules = aRobotRules;
         theRetryPolicy = aRetryPolicy;
         theCrawlerNotifier = aCrawlerNotifier;
+        theScraper = new Scraper();
     }
 
     public final CrawlerConfig getCrawlerConfig() {
@@ -42,6 +45,10 @@ public abstract class Crawler {
 
     public final CrawlerNotifier getCrawlerNotifier() {
         return theCrawlerNotifier;
+    }
+
+    public final Scraper getScraper() {
+        return theScraper;
     }
 
     public CrawlerResults crawlAndScrape() {

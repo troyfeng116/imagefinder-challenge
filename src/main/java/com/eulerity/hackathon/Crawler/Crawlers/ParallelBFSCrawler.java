@@ -16,6 +16,7 @@ import com.eulerity.hackathon.Crawler.CrawlerUtils;
 import com.eulerity.hackathon.Crawler.Notifiers.CrawlerNotifier;
 import com.eulerity.hackathon.Crawler.Notifiers.CrawlerNotifierFactory;
 import com.eulerity.hackathon.Scraper.Scraper;
+import com.eulerity.hackathon.Scraper.DocumentFetcher.DefaultDocumentFetcher;
 import com.eulerity.hackathon.Scraper.RetryPolicy.RetryPolicy;
 
 import crawlercommons.robots.SimpleRobotRules;
@@ -31,6 +32,7 @@ public class ParallelBFSCrawler extends Crawler {
 
     @Override
     public boolean handleCrawlLevel(long aStartTimestampMs, int aLevel, Queue<String> aLevelUrls) {
+        Scraper myScraper = getScraper();
         CrawlerNotifier myCrawlerNotifier = getCrawlerNotifier();
         CrawlerConfig myCrawlerConfig = getCrawlerConfig();
         int myLevelSz = aLevelUrls.size();
@@ -43,8 +45,8 @@ public class ParallelBFSCrawler extends Crawler {
         while (!aLevelUrls.isEmpty()) {
             String myUrlToScrape = aLevelUrls.poll();
             myExecutorService.execute(() -> {
-                Scraper.scrape(myUrlToScrape, myCrawlerConfig, myCrawlerNotifier, getRetryPolicy(),
-                        myExecutorServiceTimeoutMs);
+                myScraper.scrape(myUrlToScrape, myCrawlerConfig, myCrawlerNotifier, getRetryPolicy(),
+                        myExecutorServiceTimeoutMs, DefaultDocumentFetcher.INSTANCE);
                 myLatch.countDown();
             });
         }
