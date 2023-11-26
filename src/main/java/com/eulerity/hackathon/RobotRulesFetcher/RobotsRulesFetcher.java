@@ -1,4 +1,4 @@
-package com.eulerity.hackathon.RobotsChecker;
+package com.eulerity.hackathon.RobotRulesFetcher;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;

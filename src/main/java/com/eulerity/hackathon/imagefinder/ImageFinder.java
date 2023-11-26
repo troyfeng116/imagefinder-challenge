@@ -17,7 +17,7 @@ import com.eulerity.hackathon.Crawler.Crawler;
 import com.eulerity.hackathon.Crawler.CrawlerConfig;
 import com.eulerity.hackathon.Crawler.CrawlerFactory;
 import com.eulerity.hackathon.Crawler.CrawlerResults;
-import com.eulerity.hackathon.RobotsChecker.RobotsRulesFetcher;
+import com.eulerity.hackathon.RobotRulesFetcher.RobotsRulesFetcher;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
