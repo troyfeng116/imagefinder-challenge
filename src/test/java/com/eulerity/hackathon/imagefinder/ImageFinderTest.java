@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 
-import org.junit.Assert;
 import org.junit.Test;
 
 import javax.servlet.ServletException;
@@ -14,8 +13,6 @@ import javax.servlet.http.HttpSession;
 
 import org.junit.Before;
 import org.mockito.Mockito;
-
-import com.google.gson.Gson;
 
 public class ImageFinderTest {
 

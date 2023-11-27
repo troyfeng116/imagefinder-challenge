@@ -138,6 +138,17 @@ public class CrawlerConfig {
             theStartUrl = aStartUrl;
         }
 
+        public Builder(CrawlerConfig aConfig) {
+            theStartUrl = aConfig.theStartUrl;
+            theMaxDepth = aConfig.theMaxDepth;
+            theMaxUrls = aConfig.theMaxUrls;
+            theMaxImgSrcs = aConfig.theMaxImgSrcs;
+            theShouldIncludeSVGs = aConfig.theShouldIncludeSVGs;
+            theShouldIncludePNGs = aConfig.theShouldIncludePNGs;
+            theIsSingleThreaded = aConfig.theIsSingleThreaded;
+            theMaxCrawlTimeMs = aConfig.theMaxCrawlTimeMs;
+        }
+
         public Builder withMaxDepth(int aMaxDepth) {
             theMaxDepth = aMaxDepth;
             return this;
